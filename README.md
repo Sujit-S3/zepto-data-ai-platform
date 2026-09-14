@@ -151,9 +151,19 @@ docker run -p 7860:7860 zepto-support
 {"answer":"I can only answer questions about Zepto policies right now.","sources":[],"confidence":1.0}
 ```
 
-## 13. Git workflow (for the repository owner to run manually)
+## 13. Git workflow
 
-No git commands were run by the AI assistant while building this project — see [`CAPSTONE_CHECKLIST.md`](CAPSTONE_CHECKLIST.md) and the assistant's final chat message for the exact commands to run yourself, and how to verify the feature-branch + merge history with `git log --graph --oneline --all`.
+The repository was initialized and the full Git workflow was completed:
+
+- `main` branch: initial commit containing all three modules
+- `feature/complete-capstone` branch: documentation improvement commit
+- Feature branch merged into `main` with `--no-ff` (merge commit visible in history)
+
+Verify the history with:
+
+```bash
+git log --graph --oneline --decorate --all
+```
 
 ## 14. Limitations
 
