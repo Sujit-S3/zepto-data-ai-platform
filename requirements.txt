@@ -1,0 +1,40 @@
+# Zepto Data & AI Platform - ONE consolidated root requirements.txt
+# One shared virtual environment is used for all three modules (data_pipeline, analytics, support_assistant).
+# Versions below are pinned to exactly what was installed and verified working in the dev/grading environment.
+#
+# Setup:
+#   python -m venv .venv
+#   source .venv/Scripts/activate      (Windows Git Bash)   |   .venv\Scripts\activate.bat (cmd)  |  .venv/bin/activate (Linux/Mac)
+#   python -m pip install --upgrade pip
+#   python -m pip install -r requirements.txt
+#
+# Note: use "python -m pip install ..." rather than calling "pip" directly if you ever need to add a
+# package -- on some Windows setups the pip.exe launcher script can hit a spurious Permission Denied.
+
+# ---- Module 1: data_pipeline ----
+requests==2.34.2
+beautifulsoup4==4.15.0
+
+# ---- Module 2: analytics (pandas/numpy also used by data_pipeline for pd.read_sql / pd.merge) ----
+pandas==3.0.5
+numpy==2.5.3
+matplotlib==3.11.2
+seaborn==0.13.2
+scikit-learn==1.9.1
+imbalanced-learn==0.14.2
+joblib==1.6.0
+jupyter==1.1.1
+notebook==7.6.2
+nbconvert==7.17.1
+nbformat==5.11.1
+
+# ---- Module 3: support_assistant ----
+# CPU-only torch build (sentence-transformers dependency) to avoid a multi-GB CUDA download.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.0
+sentence-transformers==6.0.1
+chromadb==1.5.9
+langgraph==1.2.11
+pydantic==2.13.5
+fastapi==0.141.1
+uvicorn==0.52.4

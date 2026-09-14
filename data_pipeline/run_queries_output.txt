@@ -1,0 +1,366 @@
+
+==============================================================================
+Query 1: SELECT + WHERE + ORDER BY + LIMIT (top 5 most expensive 5-star books)
+==============================================================================
+SQL:
+SELECT title, price_gbp, price_inr, rating
+        FROM books
+        WHERE rating = 5
+        ORDER BY price_gbp DESC
+        LIMIT 5;
+
+Output (5 row(s)):
+['title', 'price_gbp', 'price_inr', 'rating']
+('El Deafo', 57.62, 6078.91, 5)
+('The Sandman, Vol. 3: Dream Country (The Sandman (volumes) #3)', 55.55, 5860.525, 5)
+('A Flight of Arrows (The Pathfinders #2)', 55.53, 5858.415, 5)
+("The Bachelor Girl's Guide to Murder (Herringford and Watts Mysteries #1)", 52.3, 5517.65, 5)
+("Scott Pilgrim's Precious Little Life (Scott Pilgrim #1)", 52.29, 5516.595, 5)
+
+==============================================================================
+Query 2: DISTINCT (distinct star ratings present)
+==============================================================================
+SQL:
+SELECT DISTINCT rating
+        FROM books
+        ORDER BY rating;
+
+Output (5 row(s)):
+['rating']
+(1,)
+(2,)
+(3,)
+(4,)
+(5,)
+
+==============================================================================
+Query 3: BETWEEN (books priced £20-£30)
+==============================================================================
+SQL:
+SELECT title, price_gbp, price_inr
+        FROM books
+        WHERE price_gbp BETWEEN 20 AND 30
+        ORDER BY price_gbp ASC;
+
+Output (34 row(s)):
+['title', 'price_gbp', 'price_inr']
+('Blood Defense (Samantha Brinkman #1)', 20.3, 2141.65)
+('Love, Lies and Spies', 20.55, 2168.025)
+('Between Shades of Gray', 20.79, 2193.345)
+('Delivering the Truth (Quaker Midwife Mystery #1)', 20.89, 2203.895)
+('Fruits Basket, Vol. 6 (Fruits Basket #6)', 20.96, 2211.28)
+('Voyager (Outlander #3)', 21.07, 2222.885)
+('Saga, Volume 3 (Saga (Collected Editions) #3)', 21.57, 2275.635)
+('Paper Girls, Vol. 1 (Paper Girls #1-5)', 21.71, 2290.405)
+('Giant Days, Vol. 2 (Giant Days #5-8)', 22.11, 2332.605)
+('The Silkworm (Cormoran Strike #2)', 23.05, 2431.775)
+('The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2)', 23.21, 2448.655)
+('Career of Evil (Cormoran Strike #3)', 24.72, 2607.96)
+('The Mysterious Affair at Styles (Hercule Poirot #1)', 24.8, 2616.4)
+('What Happened on Beale Street (Secrets of the South Mysteries #2)', 25.37, 2676.5350000000003)
+('Through the Woods', 25.38, 2677.5899999999997)
+('Extreme Prey (Lucas Davenport #26)', 25.4, 2679.7)
+('Red Hood/Arsenal, Vol. 1: Open for Business (Red Hood/Arsenal #1)', 25.48, 2688.14)
+('Starlark', 25.83, 2725.0649999999996)
+('1,000 Places to See Before You Die', 26.08, 2751.4399999999996)
+('Girl With a Pearl Earring', 26.77, 2824.235)
+('The Complete Stories and Poems (The Works of Edgar Allan Poe [Cameo Edition])', 26.78, 2825.29)
+('Poisonous (Max Revere Novels #3)', 26.8, 2827.4)
+('The Widow', 27.26, 2875.9300000000003)
+('Lost Among the Living', 27.7, 2922.35)
+('The Demon Prince of Momochi House, Vol. 4 (The Demon Prince of Momochi House #4)', 27.88, 2941.3399999999997)
+('Little Women (Little Women #1)', 28.07, 2961.385)
+('The Marriage of Opposites', 28.08, 2962.4399999999996)
+('The Passion of Dolssa', 28.32, 2987.76)
+('Saga, Volume 1 (Saga (Collected Editions) #1)', 28.48, 3004.64)
+('The Metamorphosis', 28.58, 3015.1899999999996)
+('I Hate Fairyland, Vol. 1: Madly Ever After (I Hate Fairyland (Compilations) #1-5)', 29.17, 3077.4350000000004)
+('Forever and Forever: The Courtship of Henry Longfellow and Fanny Appleton', 29.69, 3132.295)
+('The Picture of Dorian Gray', 29.7, 3133.35)
+('Ouran High School Host Club, Vol. 1 (Ouran High School Host Club #1)', 29.87, 3151.2850000000003)
+
+==============================================================================
+Query 4: IN + JOIN (books in 'Mystery' or 'Classics')
+==============================================================================
+SQL:
+SELECT b.title, b.price_gbp, c.category_name
+        FROM books b
+        JOIN categories c ON b.category_id = c.category_id
+        WHERE c.category_name IN ('Mystery', 'Classics')
+        ORDER BY c.category_name, b.price_gbp DESC;
+
+Output (51 row(s)):
+['title', 'price_gbp', 'category_name']
+('Candide', 58.63, 'Classics')
+('Animal Farm', 57.22, 'Classics')
+("Alice in Wonderland (Alice's Adventures in Wonderland #1)", 55.53, 'Classics')
+("The Pilgrim's Progress", 50.26, 'Classics')
+('Of Mice and Men', 47.11, 'Classics')
+('The Little Prince', 45.42, 'Classics')
+('The Story of Hong Gildong', 43.19, 'Classics')
+('Beowulf', 38.35, 'Classics')
+('Sense and Sensibility', 37.46, 'Classics')
+('And Then There Were None', 35.01, 'Classics')
+('Emma', 32.93, 'Classics')
+('Gone with the Wind', 32.49, 'Classics')
+('The Picture of Dorian Gray', 29.7, 'Classics')
+('The Metamorphosis', 28.58, 'Classics')
+('Little Women (Little Women #1)', 28.07, 'Classics')
+('The Complete Stories and Poems (The Works of Edgar Allan Poe [Cameo Edition])', 26.78, 'Classics')
+('Wuthering Heights', 17.73, 'Classics')
+('The Secret Garden', 15.08, 'Classics')
+('The Hound of the Baskervilles (Sherlock Holmes #5)', 14.82, 'Classics')
+('Boar Island (Anna Pigeon #19)', 59.48, 'Mystery')
+("The No. 1 Ladies' Detective Agency (No. 1 Ladies' Detective Agency #1)", 57.7, 'Mystery')
+('The Past Never Ends', 56.5, 'Mystery')
+('Murder at the 42nd Street Library (Raymond Ambler #1)', 54.36, 'Mystery')
+('The Last Mile (Amos Decker #2)', 54.21, 'Mystery')
+("1st to Die (Women's Murder Club #1)", 53.98, 'Mystery')
+("The Bachelor Girl's Guide to Murder (Herringford and Watts Mysteries #1)", 52.3, 'Mystery')
+('A Time of Torment (Charlie Parker #14)', 48.35, 'Mystery')
+('Sharp Objects', 47.82, 'Mystery')
+('The Murder of Roger Ackroyd (Hercule Poirot #4)', 44.1, 'Mystery')
+('The Exiled', 43.45, 'Mystery')
+('In the Woods (Dublin Murder Squad #1)', 38.38, 'Mystery')
+('Most Wanted', 35.28, 'Mystery')
+('The Widow', 27.26, 'Mystery')
+('Poisonous (Max Revere Novels #3)', 26.8, 'Mystery')
+('Extreme Prey (Lucas Davenport #26)', 25.4, 'Mystery')
+('What Happened on Beale Street (Secrets of the South Mysteries #2)', 25.37, 'Mystery')
+('The Mysterious Affair at Styles (Hercule Poirot #1)', 24.8, 'Mystery')
+('Career of Evil (Cormoran Strike #3)', 24.72, 'Mystery')
+('The Silkworm (Cormoran Strike #2)', 23.05, 'Mystery')
+('Delivering the Truth (Quaker Midwife Mystery #1)', 20.89, 'Mystery')
+('Blood Defense (Samantha Brinkman #1)', 20.3, 'Mystery')
+('In a Dark, Dark Wood', 19.63, 'Mystery')
+("The Cuckoo's Calling (Cormoran Strike #1)", 19.21, 'Mystery')
+('A Study in Scarlet (Sherlock Holmes #1)', 16.73, 'Mystery')
+('A Murder in Time', 16.64, 'Mystery')
+('The Girl In The Ice (DCI Erika Foster #1)', 15.85, 'Mystery')
+('That Darkness (Gardiner and Renner #1)', 13.92, 'Mystery')
+('Playing with Fire', 13.71, 'Mystery')
+('The Girl You Lost', 12.29, 'Mystery')
+('Hide Away (Eve Duncan #20)', 11.84, 'Mystery')
+('Tastes Like Fear (DI Marnie Rome #3)', 10.69, 'Mystery')
+
+==============================================================================
+Query 5: JOIN (top 3 highest-rated books per category)
+==============================================================================
+SQL:
+SELECT category_name, title, price_gbp, rating
+        FROM (
+            SELECT
+                c.category_name AS category_name,
+                b.title AS title,
+                b.price_gbp AS price_gbp,
+                b.rating AS rating,
+                ROW_NUMBER() OVER (
+                    PARTITION BY c.category_id
+                    ORDER BY b.rating DESC, b.price_gbp ASC
+                ) AS rn
+            FROM books b
+            JOIN categories c ON b.category_id = c.category_id
+        )
+        WHERE rn <= 3
+        ORDER BY category_name, rating DESC, price_gbp ASC;
+
+Output (15 row(s)):
+['category_name', 'title', 'price_gbp', 'rating']
+('Classics', 'The Secret Garden', 15.08, 4)
+('Classics', 'The Complete Stories and Poems (The Works of Edgar Allan Poe [Cameo Edition])', 26.78, 4)
+('Classics', 'Little Women (Little Women #1)', 28.07, 4)
+('Historical Fiction', "A Spy's Devotion (The Regency Spies of London #1)", 16.97, 5)
+('Historical Fiction', 'Between Shades of Gray', 20.79, 5)
+('Historical Fiction', 'Voyager (Outlander #3)', 21.07, 5)
+('Mystery', 'The Girl You Lost', 12.29, 5)
+('Mystery', 'The Silkworm (Cormoran Strike #2)', 23.05, 5)
+('Mystery', 'What Happened on Beale Street (Secrets of the South Mysteries #2)', 25.37, 5)
+('Sequential Art', 'Fruits Basket, Vol. 2 (Fruits Basket #2)', 11.64, 5)
+('Sequential Art', 'Superman Vol. 1: Before Truth (Superman by Gene Luen Yang #1)', 11.89, 5)
+('Sequential Art', 'Princess Jellyfish 2-in-1 Omnibus, Vol. 01 (Princess Jellyfish 2-in-1 Omnibus #1)', 13.61, 5)
+('Travel', '1,000 Places to See Before You Die', 26.08, 5)
+('Travel', 'Full Moon over Noah’s Ark: An Odyssey to Mount Ararat and Beyond', 49.43, 4)
+('Travel', 'A Year in Provence (Provence #1)', 56.88, 4)
+
+==============================================================================
+Query 6: JOIN + GROUP BY (avg price per category)
+==============================================================================
+SQL:
+SELECT c.category_name, COUNT(*) AS num_books, ROUND(AVG(b.price_gbp), 2) AS avg_price_gbp
+        FROM books b
+        JOIN categories c ON b.category_id = c.category_id
+        GROUP BY c.category_name
+        ORDER BY avg_price_gbp DESC;
+
+Output (5 row(s)):
+['category_name', 'num_books', 'avg_price_gbp']
+('Travel', 11, 39.79)
+('Classics', 19, 36.55)
+('Sequential Art', 75, 34.57)
+('Historical Fiction', 26, 33.64)
+('Mystery', 32, 31.72)
+
+==============================================================================
+pandas: pd.read_sql for Query 1 and Query 3
+==============================================================================
+
+df_q1 (top 5 most expensive 5-star books):
+                                               title  ...  rating
+0                                           El Deafo  ...       5
+1  The Sandman, Vol. 3: Dream Country (The Sandma...  ...       5
+2            A Flight of Arrows (The Pathfinders #2)  ...       5
+3  The Bachelor Girl's Guide to Murder (Herringfo...  ...       5
+4  Scott Pilgrim's Precious Little Life (Scott Pi...  ...       5
+
+[5 rows x 4 columns]
+
+df_q3 (books priced £20-£30):
+                                                title  price_gbp  price_inr
+0                Blood Defense (Samantha Brinkman #1)      20.30   2141.650
+1                                Love, Lies and Spies      20.55   2168.025
+2                              Between Shades of Gray      20.79   2193.345
+3    Delivering the Truth (Quaker Midwife Mystery #1)      20.89   2203.895
+4            Fruits Basket, Vol. 6 (Fruits Basket #6)      20.96   2211.280
+5                              Voyager (Outlander #3)      21.07   2222.885
+6       Saga, Volume 3 (Saga (Collected Editions) #3)      21.57   2275.635
+7              Paper Girls, Vol. 1 (Paper Girls #1-5)      21.71   2290.405
+8                Giant Days, Vol. 2 (Giant Days #5-8)      22.11   2332.605
+9                   The Silkworm (Cormoran Strike #2)      23.05   2431.775
+10  The Road to Little Dribbling: Adventures of an...      23.21   2448.655
+11                Career of Evil (Cormoran Strike #3)      24.72   2607.960
+12  The Mysterious Affair at Styles (Hercule Poiro...      24.80   2616.400
+13  What Happened on Beale Street (Secrets of the ...      25.37   2676.535
+14                                  Through the Woods      25.38   2677.590
+15                 Extreme Prey (Lucas Davenport #26)      25.40   2679.700
+16  Red Hood/Arsenal, Vol. 1: Open for Business (R...      25.48   2688.140
+17                                           Starlark      25.83   2725.065
+18                 1,000 Places to See Before You Die      26.08   2751.440
+19                          Girl With a Pearl Earring      26.77   2824.235
+20  The Complete Stories and Poems (The Works of E...      26.78   2825.290
+21                   Poisonous (Max Revere Novels #3)      26.80   2827.400
+22                                          The Widow      27.26   2875.930
+23                              Lost Among the Living      27.70   2922.350
+24  The Demon Prince of Momochi House, Vol. 4 (The...      27.88   2941.340
+25                     Little Women (Little Women #1)      28.07   2961.385
+26                          The Marriage of Opposites      28.08   2962.440
+27                              The Passion of Dolssa      28.32   2987.760
+28      Saga, Volume 1 (Saga (Collected Editions) #1)      28.48   3004.640
+29                                  The Metamorphosis      28.58   3015.190
+30  I Hate Fairyland, Vol. 1: Madly Ever After (I ...      29.17   3077.435
+31  Forever and Forever: The Courtship of Henry Lo...      29.69   3132.295
+32                         The Picture of Dorian Gray      29.70   3133.350
+33  Ouran High School Host Club, Vol. 1 (Ouran Hig...      29.87   3151.285
+
+==============================================================================
+JOIN equivalence check: pd.read_sql(SQL JOIN) vs pd.merge()
+==============================================================================
+
+df_sql_join (from pd.read_sql of the SQL JOIN query):
+                                                title  price_gbp category_name
+0                                             Candide      58.63      Classics
+1                                         Animal Farm      57.22      Classics
+2   Alice in Wonderland (Alice's Adventures in Won...      55.53      Classics
+3                              The Pilgrim's Progress      50.26      Classics
+4                                     Of Mice and Men      47.11      Classics
+5                                   The Little Prince      45.42      Classics
+6                           The Story of Hong Gildong      43.19      Classics
+7                                             Beowulf      38.35      Classics
+8                               Sense and Sensibility      37.46      Classics
+9                            And Then There Were None      35.01      Classics
+10                                               Emma      32.93      Classics
+11                                 Gone with the Wind      32.49      Classics
+12                         The Picture of Dorian Gray      29.70      Classics
+13                                  The Metamorphosis      28.58      Classics
+14                     Little Women (Little Women #1)      28.07      Classics
+15  The Complete Stories and Poems (The Works of E...      26.78      Classics
+16                                  Wuthering Heights      17.73      Classics
+17                                  The Secret Garden      15.08      Classics
+18  The Hound of the Baskervilles (Sherlock Holmes...      14.82      Classics
+19                      Boar Island (Anna Pigeon #19)      59.48       Mystery
+20  The No. 1 Ladies' Detective Agency (No. 1 Ladi...      57.70       Mystery
+21                                The Past Never Ends      56.50       Mystery
+22  Murder at the 42nd Street Library (Raymond Amb...      54.36       Mystery
+23                     The Last Mile (Amos Decker #2)      54.21       Mystery
+24                1st to Die (Women's Murder Club #1)      53.98       Mystery
+25  The Bachelor Girl's Guide to Murder (Herringfo...      52.30       Mystery
+26             A Time of Torment (Charlie Parker #14)      48.35       Mystery
+27                                      Sharp Objects      47.82       Mystery
+28    The Murder of Roger Ackroyd (Hercule Poirot #4)      44.10       Mystery
+29                                         The Exiled      43.45       Mystery
+30              In the Woods (Dublin Murder Squad #1)      38.38       Mystery
+31                                        Most Wanted      35.28       Mystery
+32                                          The Widow      27.26       Mystery
+33                   Poisonous (Max Revere Novels #3)      26.80       Mystery
+34                 Extreme Prey (Lucas Davenport #26)      25.40       Mystery
+35  What Happened on Beale Street (Secrets of the ...      25.37       Mystery
+36  The Mysterious Affair at Styles (Hercule Poiro...      24.80       Mystery
+37                Career of Evil (Cormoran Strike #3)      24.72       Mystery
+38                  The Silkworm (Cormoran Strike #2)      23.05       Mystery
+39   Delivering the Truth (Quaker Midwife Mystery #1)      20.89       Mystery
+40               Blood Defense (Samantha Brinkman #1)      20.30       Mystery
+41                               In a Dark, Dark Wood      19.63       Mystery
+42          The Cuckoo's Calling (Cormoran Strike #1)      19.21       Mystery
+43            A Study in Scarlet (Sherlock Holmes #1)      16.73       Mystery
+44                                   A Murder in Time      16.64       Mystery
+45          The Girl In The Ice (DCI Erika Foster #1)      15.85       Mystery
+46             That Darkness (Gardiner and Renner #1)      13.92       Mystery
+47                                  Playing with Fire      13.71       Mystery
+48                                  The Girl You Lost      12.29       Mystery
+49                         Hide Away (Eve Duncan #20)      11.84       Mystery
+50               Tastes Like Fear (DI Marnie Rome #3)      10.69       Mystery
+
+df_pandas_merge (from pd.merge on in-memory DataFrames, no SQL JOIN):
+                                                title  price_gbp category_name
+0                                             Candide      58.63      Classics
+1                                         Animal Farm      57.22      Classics
+2   Alice in Wonderland (Alice's Adventures in Won...      55.53      Classics
+3                              The Pilgrim's Progress      50.26      Classics
+4                                     Of Mice and Men      47.11      Classics
+5                                   The Little Prince      45.42      Classics
+6                           The Story of Hong Gildong      43.19      Classics
+7                                             Beowulf      38.35      Classics
+8                               Sense and Sensibility      37.46      Classics
+9                            And Then There Were None      35.01      Classics
+10                                               Emma      32.93      Classics
+11                                 Gone with the Wind      32.49      Classics
+12                         The Picture of Dorian Gray      29.70      Classics
+13                                  The Metamorphosis      28.58      Classics
+14                     Little Women (Little Women #1)      28.07      Classics
+15  The Complete Stories and Poems (The Works of E...      26.78      Classics
+16                                  Wuthering Heights      17.73      Classics
+17                                  The Secret Garden      15.08      Classics
+18  The Hound of the Baskervilles (Sherlock Holmes...      14.82      Classics
+19                      Boar Island (Anna Pigeon #19)      59.48       Mystery
+20  The No. 1 Ladies' Detective Agency (No. 1 Ladi...      57.70       Mystery
+21                                The Past Never Ends      56.50       Mystery
+22  Murder at the 42nd Street Library (Raymond Amb...      54.36       Mystery
+23                     The Last Mile (Amos Decker #2)      54.21       Mystery
+24                1st to Die (Women's Murder Club #1)      53.98       Mystery
+25  The Bachelor Girl's Guide to Murder (Herringfo...      52.30       Mystery
+26             A Time of Torment (Charlie Parker #14)      48.35       Mystery
+27                                      Sharp Objects      47.82       Mystery
+28    The Murder of Roger Ackroyd (Hercule Poirot #4)      44.10       Mystery
+29                                         The Exiled      43.45       Mystery
+30              In the Woods (Dublin Murder Squad #1)      38.38       Mystery
+31                                        Most Wanted      35.28       Mystery
+32                                          The Widow      27.26       Mystery
+33                   Poisonous (Max Revere Novels #3)      26.80       Mystery
+34                 Extreme Prey (Lucas Davenport #26)      25.40       Mystery
+35  What Happened on Beale Street (Secrets of the ...      25.37       Mystery
+36  The Mysterious Affair at Styles (Hercule Poiro...      24.80       Mystery
+37                Career of Evil (Cormoran Strike #3)      24.72       Mystery
+38                  The Silkworm (Cormoran Strike #2)      23.05       Mystery
+39   Delivering the Truth (Quaker Midwife Mystery #1)      20.89       Mystery
+40               Blood Defense (Samantha Brinkman #1)      20.30       Mystery
+41                               In a Dark, Dark Wood      19.63       Mystery
+42          The Cuckoo's Calling (Cormoran Strike #1)      19.21       Mystery
+43            A Study in Scarlet (Sherlock Holmes #1)      16.73       Mystery
+44                                   A Murder in Time      16.64       Mystery
+45          The Girl In The Ice (DCI Erika Foster #1)      15.85       Mystery
+46             That Darkness (Gardiner and Renner #1)      13.92       Mystery
+47                                  Playing with Fire      13.71       Mystery
+48                                  The Girl You Lost      12.29       Mystery
+49                         Hide Away (Eve Duncan #20)      11.84       Mystery
+50               Tastes Like Fear (DI Marnie Rome #3)      10.69       Mystery
+
+Do the SQL-JOIN result and the pandas pd.merge result match? True
