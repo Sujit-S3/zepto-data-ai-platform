@@ -126,8 +126,8 @@ def _call_real_llm(prompt: str) -> str:
     API key read from an environment variable (never hardcoded).
 
     This function is only reached when MOCK_LLM == "0". It is not executed
-    in this session (no API key is configured here); it exists to satisfy
-    the spec's requirement that the real-LLM branch be structurally correct.
+    here (no API key is configured); it exists to satisfy the spec's
+    requirement that the real-LLM branch be structurally correct.
     """
     api_key = os.environ.get("LLM_API_KEY")
     base_url = os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v1")
@@ -156,7 +156,7 @@ def _generate_with_retries(base_prompt: str) -> "AnswerResponse | ErrorResponse"
     instruction appended if validation fails. Returns an ErrorResponse
     (never raises) if it still fails after all retries.
 
-    Only invoked when MOCK_LLM == "0"; not executed in this session.
+    Only invoked when MOCK_LLM == "0"; not executed/exercised here.
     """
     import json
 
@@ -255,7 +255,7 @@ def direct_answer(state: SupportAssistantState) -> SupportAssistantState:
         }
     else:
         # MOCK_LLM == "0": call the real LLM directly, no retrieval.
-        # Not executed in this session.
+        # Not executed/exercised here.
         prompt = (
             "You are the Zepto Support Assistant. Answer the following "
             "general question briefly and honestly, then respond as a "

@@ -25,9 +25,9 @@ Each of the 8 chunks is embedded with sentence-transformers'
 collection name `zepto_policy_docs`, cosine distance space). Chunk IDs are
 `doc_01_chunk_01` ... `doc_08_chunk_01`; each chunk's metadata stores
 `source_doc_id` (e.g. `doc_01`). Running `python ingest.py` (re)builds the
-collection from scratch and prints a summary. This was actually executed in
-this session -- see "Verified run output" below; the collection ends up
-with exactly 8 stored vectors.
+collection from scratch and prints a summary. This was actually executed
+during development -- see "Verified run output" below; the collection ends
+up with exactly 8 stored vectors.
 
 The same embedding model and the same persistent collection are reused at
 query time by `graph.py` via `get_embedding_model()` / `get_chroma_client()`
@@ -62,7 +62,7 @@ Graph wiring: `START -> classify_intent`, then a conditional edge
 This is the **only stage that branches on `MOCK_LLM`**:
 
 - **`MOCK_LLM` unset or `"1"` (graded default, the only path actually
-  executed in this session):**
+  executed and verified):**
   - In `retrieve_and_answer`: no LLM call. `answer = "Based on the
     retrieved context: " + <first ~200 chars of the single most similar
     retrieved chunk's text>`; `sources` = the ids of all 3 retrieved
@@ -71,7 +71,7 @@ This is the **only stage that branches on `MOCK_LLM`**:
     questions about Zepto policies right now."`; `sources = []`;
     `confidence = 1.0`.
 - **`MOCK_LLM == "0"` (optional real-LLM branch -- present in code, never
-  executed in this session, no API key configured here):**
+  executed here, no API key configured):**
   - In `retrieve_and_answer`: `prompt_template.build_prompt()` renders the
     structured `SUPPORT_ASSISTANT_PROMPT_TEMPLATE` (Role / Context / Task /
     Format / Length sections, a negative constraint, and a few-shot
@@ -110,7 +110,7 @@ compiled LangGraph graph) and returns the validated `AnswerResponse`
 (`answer`, `sources`, `confidence`) as JSON. A `GET /` health-check route is
 also provided.
 
-## Verified run output (this session, real execution)
+## Verified run output (real execution, captured during development)
 
 **Ingestion** (`python ingest.py`):
 
