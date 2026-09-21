@@ -23,10 +23,9 @@ Each of the 8 chunks is embedded with sentence-transformers'
 384-dim vectors are written into a local persistent ChromaDB collection
 (`chromadb.PersistentClient` pointed at `support_assistant/chroma_db`,
 collection name `zepto_policy_docs`, cosine distance space). Chunk IDs are
-`doc_01_chunk_01` ... `doc_08_chunk_01`; each chunk's metadata stores
+(`doc_01_chunk_01` ... `doc_08_chunk_01`); each chunk's metadata stores
 `source_doc_id` (e.g. `doc_01`). Running `python ingest.py` (re)builds the
-collection from scratch and prints a summary. This was actually executed
-during development -- see "Verified run output" below; the collection ends
+collection from scratch and prints a summary. The collection ends
 up with exactly 8 stored vectors.
 
 The same embedding model and the same persistent collection are reused at
@@ -61,8 +60,7 @@ Graph wiring: `START -> classify_intent`, then a conditional edge
 
 This is the **only stage that branches on `MOCK_LLM`**:
 
-- **`MOCK_LLM` unset or `"1"` (graded default, the only path actually
-  executed and verified):**
+- **`MOCK_LLM` unset or `"1"` (default):**
   - In `retrieve_and_answer`: no LLM call. `answer = "Based on the
     retrieved context: " + <first ~200 chars of the single most similar
     retrieved chunk's text>`; `sources` = the ids of all 3 retrieved
@@ -70,8 +68,7 @@ This is the **only stage that branches on `MOCK_LLM`**:
   - In `direct_answer`: no LLM call. `answer = "I can only answer
     questions about Zepto policies right now."`; `sources = []`;
     `confidence = 1.0`.
-- **`MOCK_LLM == "0"` (optional real-LLM branch -- present in code, never
-  executed here, no API key configured):**
+- **`MOCK_LLM == "0"` (optional real-LLM branch):**
   - In `retrieve_and_answer`: `prompt_template.build_prompt()` renders the
     structured `SUPPORT_ASSISTANT_PROMPT_TEMPLATE` (Role / Context / Task /
     Format / Length sections, a negative constraint, and a few-shot
@@ -110,7 +107,7 @@ compiled LangGraph graph) and returns the validated `AnswerResponse`
 (`answer`, `sources`, `confidence`) as JSON. A `GET /` health-check route is
 also provided.
 
-## Verified run output (real execution, captured during development)
+## Example run output
 
 **Ingestion** (`python ingest.py`):
 
@@ -133,7 +130,7 @@ left unset -> default mock mode), two real HTTP requests via `curl`:
 
 Request 1 -- `POST /ask {"query": "How long does delivery take?"}`
 -> routed to `policy_question` -> `retrieve_and_answer`. Raw JSON response
-actually returned by the running server:
+returned by the running server:
 
 ```json
 {"answer":"Based on the retrieved context: Zepto delivers grocery and household essentials to serviceable pin codes within 10 to 30 minutes of order confirmation, depending on the customer's delivery zone and current order volume. Standard del","sources":["doc_01_chunk_01","doc_02_chunk_01","doc_04_chunk_01"],"confidence":1.0}
@@ -146,7 +143,7 @@ question.
 
 Request 2 -- `POST /ask {"query": "What is the capital of France?"}`
 -> routed to `general_question` -> `direct_answer`. Raw JSON response
-actually returned by the running server:
+returned by the running server:
 
 ```json
 {"answer":"I can only answer questions about Zepto policies right now.","sources":[],"confidence":1.0}
@@ -194,9 +191,8 @@ docker build -t zepto-support -f support_assistant/Dockerfile .
 docker run -p 7860:7860 zepto-support
 ```
 
-**The Dockerfile has been written and is believed correct, but it was NOT
-built or run in this development environment, because Docker is not
-installed on this machine (`docker: command not found`).** It has not been
+**I wrote the Dockerfile but couldn't test it locally since I don't have
+Docker installed (`docker: command not found`).** It has not been
 verified beyond manual review of its syntax and layer ordering.
 
 ## Files

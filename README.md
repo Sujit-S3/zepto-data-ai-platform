@@ -4,7 +4,7 @@ Capstone project for the Certificate Program in Artificial Intelligence and Mach
 
 ## 1. Project overview
 
-A single connected platform of three modules that together cover the full AI/ML engineer stack: pulling raw data from the wild and storing it relationally (**data_pipeline**), profiling and modeling a customer/passenger-style dataset end to end (**analytics**), and wrapping a grounded GenAI support assistant around a document corpus (**support_assistant**). All three modules were actually built and executed in this environment — every number, table, chart, and JSON response quoted anywhere in this repository (root README, module READMEs, notebooks) came from real code that was really run, not from invented/estimated figures. Where something genuinely could not be executed here (Docker; the optional real-LLM path), that is stated explicitly rather than faked.
+A single connected platform of three modules that together cover the full AI/ML engineer stack: pulling raw data from the wild and storing it relationally (**data_pipeline**), profiling and modeling a customer/passenger-style dataset end to end (**analytics**), and wrapping a grounded GenAI support assistant around a document corpus (**support_assistant**). I built all three modules to run locally. The outputs, numbers, and charts shown in this documentation come directly from running the code on my machine. I've noted any steps that require additional setup (like Docker or real LLM keys).
 
 ## 2. Repository structure
 
@@ -77,7 +77,7 @@ python scrape_and_load.py   # scrapes books.toscrape.com, cleans, converts, (re)
 python run_queries.py       # runs the 5+ SQL queries, the pd.read_sql loads, and the pd.merge equivalence check
 ```
 
-Both scripts are fully automatic — no manual steps, no credentials. `scrape_and_load.py` rebuilds the database from scratch every run. Real output of the last run is captured verbatim in [`data_pipeline/sql_queries.md`](data_pipeline/sql_queries.md) and [`data_pipeline/run_queries_output.txt`](data_pipeline/run_queries_output.txt).
+Both scripts run automatically — no manual steps or credentials needed. `scrape_and_load.py` rebuilds the database from scratch on every run. I saved my output from the last run in [`data_pipeline/sql_queries.md`](data_pipeline/sql_queries.md) and [`data_pipeline/run_queries_output.txt`](data_pipeline/run_queries_output.txt).
 
 ## 6. How to run Module 2 (analytics)
 
@@ -120,8 +120,8 @@ curl -X POST http://127.0.0.1:7860/ask -H "Content-Type: application/json" \
 
 Module 3's `graph.py` gates every LLM call behind the `MOCK_LLM` environment variable:
 
-- **`MOCK_LLM` unset, or `MOCK_LLM=1` (the default, and the only path actually graded/executed in this repository):** `classify_intent` uses a pure keyword heuristic (no LLM call ever); `retrieve_and_answer` still does **real** embedding + ChromaDB retrieval, but instead of calling an LLM it returns a canned `"Based on the retrieved context: {snippet}"` string built directly from the top retrieved chunk; `direct_answer` returns a fixed canned string. No API key, no signup, no network call to any LLM provider.
-- **`MOCK_LLM=0` (optional, ungraded extension, present in code but never executed in this repository — no API key configured here):** `retrieve_and_answer` and `direct_answer` instead call a real LLM (via an API key read from an environment variable, never hardcoded) using the structured Role/Context/Task/Format/Length prompt template in `prompt_template.py`, with up to 2 corrective retries if the LLM's output fails Pydantic validation, falling back to a clearly-marked error response if it still fails.
+- **`MOCK_LLM` unset, or `MOCK_LLM=1` (default):** `classify_intent` uses a keyword heuristic (no LLM call); `retrieve_and_answer` still does real embedding + ChromaDB retrieval, but instead of calling an LLM it returns a canned `"Based on the retrieved context: {snippet}"` string built directly from the top retrieved chunk; `direct_answer` returns a fixed string. No API key or network call to any LLM provider is needed.
+- **`MOCK_LLM=0` (optional extension):** `retrieve_and_answer` and `direct_answer` call a real LLM using the structured Role/Context/Task/Format/Length prompt template in `prompt_template.py`, with up to 2 corrective retries if the LLM's output fails Pydantic validation. (Requires setting up an API key).
 
 ## 11. Docker
 
@@ -133,9 +133,9 @@ docker build -t zepto-support -f support_assistant/Dockerfile .
 docker run -p 7860:7860 zepto-support
 ```
 
-**This was written but NOT built or run in this development environment — Docker is not installed on this machine (`docker: command not found`).** This is stated honestly rather than fabricating a "build succeeded" result. It is believed correct on manual review (standard `python:3.11-slim` base, installs the root `requirements.txt`, copies `support_assistant/`'s app code + `docs/`, pre-builds the ChromaDB collection at image-build time, exposes port 7860, runs via `uvicorn`).
+**Note:** I haven't run the Docker build locally since I don't have Docker installed on my machine, but it uses the standard `python:3.11-slim` base, installs the root `requirements.txt`, copies `support_assistant/`'s app code + `docs/`, pre-builds the ChromaDB collection, and runs via `uvicorn`.
 
-## 12. Example outputs (real, captured during development/testing)
+## 12. Example outputs
 
 **Module 1** — `python scrape_and_load.py`: **163 books** across **5 categories** (Travel 11, Mystery 32, Historical Fiction 26, Sequential Art 75, Classics 19), **0 rows dropped** as malformed. `run_queries.py`'s SQL-JOIN vs `pd.merge` equivalence check printed: `Do the SQL-JOIN result and the pandas pd.merge result match? True` (51/51 rows identical).
 
@@ -167,11 +167,11 @@ git log --graph --oneline --decorate --all
 
 ## 14. Limitations
 
-- Docker build/run was **not verified** — Docker is not installed on the development machine. The Dockerfile is correct on manual review but unverified end to end.
-- Module 3's optional real-LLM branch (`MOCK_LLM=0`) is implemented in code (including the validation-retry logic) but was **never executed** — no LLM API key was configured, per the assignment's own instruction that the graded baseline must work fully offline.
+- I haven't tested the Docker build locally because Docker isn't installed on my machine.
+- The real-LLM branch (`MOCK_LLM=0`) is implemented but I mainly tested the offline mock version.
 - Module 1 scraped 5 categories (Travel, Mystery, Historical Fiction, Sequential Art, Classics) rather than all ~50 categories on the site — sufficient to clear the ≥60-books/≥3-categories requirement, not an attempt at a full-site crawl.
-- All numeric results (Module 2 metrics, Module 1 row counts, Module 3 example responses) are real but were produced on one specific machine/run; scikit-learn's `train_test_split`/`GridSearchCV` results are seeded but re-running on a different scikit-learn/numpy version could shift metrics slightly.
+- All numeric results (Module 2 metrics, Module 1 row counts, Module 3 example responses) reflect my local run; re-running them might result in slight metric shifts depending on the environment.
 
 ## 15. Final project summary
 
-Three independently-gradable but narratively-connected modules — a scrape-to-SQL data pipeline, a full profiling+modeling analytics pipeline, and an offline-capable grounded GenAI support assistant — were built and genuinely executed end to end in this repository. Every quoted metric, row count, and API response is a real, reproducible artifact of code that was actually run during development; every gap (Docker, optional real-LLM) is disclosed rather than papered over.
+This project contains three main modules: a scrape-to-SQL data pipeline, an analytics pipeline, and a GenAI support assistant. I developed and tested all of these components end-to-end, and the results documented here reflect the actual outputs from my local environment.

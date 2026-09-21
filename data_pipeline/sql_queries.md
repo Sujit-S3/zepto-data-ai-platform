@@ -1,9 +1,8 @@
 # SQL Queries and Real Output
 
-This file contains the exact SQL query strings and the exact real output
-captured from actually running `run_queries.py` against
-`data/zepto_books.db` (built by `scrape_and_load.py`). No numbers below are
-invented -- they are copy-pasted from the real console output of that run.
+This file contains the exact SQL query strings and the output
+captured from running `run_queries.py` against
+`data/zepto_books.db` (built by `scrape_and_load.py`).
 
 Database at time of this run: **163 books** across **5 categories**
 (Travel, Mystery, Historical Fiction, Sequential Art, Classics).
@@ -83,7 +82,7 @@ ORDER BY price_gbp ASC;
 | The Silkworm (Cormoran Strike #2) | 23.05 | 2431.775 |
 | ... (24 more rows, up to 29.87 GBP) | | |
 
-(Total row count actually returned: **34**.)
+(Total row count returned: **34**.)
 
 ---
 
@@ -114,7 +113,7 @@ ORDER BY c.category_name, b.price_gbp DESC;
 | The Past Never Ends | 56.5 | Mystery |
 | ... (29 more Mystery rows down to 10.69) | | |
 
-(Total row count actually returned: **51** -- full list captured in
+(Total row count returned: **51** -- full list captured in
 `run_queries_output.txt`.)
 
 ---
@@ -216,7 +215,7 @@ independent ways and compared:
 1. **`df_sql_join`** -- `pd.read_sql(q4_sql, conn)`, i.e. the SQL engine
    performs the JOIN.
 2. **`df_pandas_merge`** -- `books` and `categories` were each loaded
-   independently into DataFrames with plain `SELECT * FROM <table>`, then
+   into DataFrames with plain `SELECT * FROM <table>`, then
    joined in-memory using `pd.merge(books_df, categories_df,
    on="category_id", how="inner")`, filtered to `category_name IN
    ('Mystery', 'Classics')`, and sorted identically -- no SQL JOIN used for
@@ -225,7 +224,7 @@ independent ways and compared:
 Both DataFrames were normalized (same columns, same sort order, reset
 index) and compared with `DataFrame.equals(...)`.
 
-**Actual real output printed by `run_queries.py`:**
+**Output printed by `run_queries.py`:**
 
 ```
 Do the SQL-JOIN result and the pandas pd.merge result match? True
@@ -236,6 +235,6 @@ in the identical order, byte-for-byte equal per `pandas.DataFrame.equals`.
 
 ---
 
-The complete, unedited console output of the actual `run_queries.py` run
+The complete console output of the `run_queries.py` run
 that produced every number above is saved alongside this file as
 `run_queries_output.txt`.

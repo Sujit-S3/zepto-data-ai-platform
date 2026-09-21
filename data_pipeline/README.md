@@ -1,6 +1,6 @@
 # Module 1 -- Data Pipeline (Zepto Data & AI Platform capstone)
 
-A real scrape -> clean -> convert -> store -> query pipeline built against
+A scrape -> clean -> convert -> store -> query pipeline built against
 the public scraping-practice site
 [books.toscrape.com](https://books.toscrape.com).
 
@@ -12,16 +12,15 @@ the public scraping-practice site
    (CSS class word), and availability text directly off each
    `article.product_pod` block (no need to visit individual book detail
    pages).
-2. **Clean**: parses each raw field into a proper type; drops any row that
-   fails to parse cleanly instead of crashing or fabricating a value.
+   fails to parse cleanly instead of crashing.
 3. **Convert**: converts GBP prices to INR using a fixed, hardcoded
    project-defined constant (not a live exchange rate).
 4. **Store**: loads the cleaned rows into a normalized two-table SQLite
    database, rebuilt from scratch on every run.
 5. **Query** (`run_queries.py`): runs 6 SQL queries demonstrating
    `SELECT`/`WHERE`, `ORDER BY`, `LIMIT`, `DISTINCT`, `IN`, `BETWEEN`, and a
-   `JOIN`, loads results into pandas via `pd.read_sql`, and independently
-   reproduces the JOIN result with `pd.merge` on in-memory DataFrames to
+   `JOIN`, loads results into pandas via `pd.read_sql`, and reproduces
+   the JOIN result with `pd.merge` on in-memory DataFrames to
    verify the two approaches agree.
 
 ## Setup & run commands
@@ -40,11 +39,7 @@ API keys. `scrape_and_load.py` deletes and recreates
 `data/zepto_books.db` from scratch every time it is run, so the pipeline
 is idempotent and reproducible.
 
-## Real results from the actual run
-
-The numbers below are the **actual observed output** of running
-`python scrape_and_load.py` in this environment (not estimated or
-invented):
+Here is the output from running `python scrape_and_load.py`:
 
 ```
 Discovering categories and scraping books.toscrape.com ...
@@ -72,8 +67,7 @@ Fixed conversion rate used: 1 GBP = 105.5 INR (project-defined constant, not a l
 The complete real query output from `run_queries.py` (all 6 queries plus
 the pandas `pd.read_sql` / `pd.merge` equivalence check) is captured
 verbatim in [`sql_queries.md`](sql_queries.md) and
-[`run_queries_output.txt`](run_queries_output.txt). The JOIN result
-produced by `pd.read_sql` and the result independently reproduced via
+produced by `pd.read_sql` and the result reproduced via
 `pd.merge` on in-memory DataFrames were compared with
 `DataFrame.equals(...)` and printed:
 
@@ -94,17 +88,10 @@ Do the SQL-JOIN result and the pandas pd.merge result match? True
   `.strip().lower().startswith("in stock")` -> `True`/`False`. An empty/
   missing availability string (a structural parse failure) means the row
   is dropped.
-- **Strategy: drop malformed rows.** Rather than injecting a fabricated
-  placeholder or median value for a row that fails to parse, we drop it
-  entirely and report the count. Justification: books.toscrape.com is a
-  well-formed, static demo site with a highly consistent HTML structure
-  per product pod, so malformed rows are rare/unexpected in practice (in
-  our actual run, 0 of 163 rows were dropped). Silently imputing a
-  fabricated numeric value for what is fundamentally a *structural*
-  parsing error (not a genuine missing-data problem) would misrepresent
-  real data as clean data, which conflicts with the project's academic
-  integrity requirement of never inventing plausible-looking results.
-  Dropping and reporting the count is the transparent, honest choice.
+- **Strategy: drop malformed rows.** Instead of guessing a value for
+  a row that fails to parse, I drop it entirely and report the count.
+  books.toscrape.com is a well-formed site, so malformed rows are rare
+  (0 rows dropped in my run). Dropping them is the cleanest approach.
 
 ## Currency conversion
 
