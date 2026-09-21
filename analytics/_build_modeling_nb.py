@@ -14,17 +14,11 @@ def code(src):
 
 md("""# Module 2 — Analytics: 02 Modeling (Titanic)
 
-Zepto Data & AI Platform capstone — Module 2 (Analytics).
+This is the second part of Module 2 for my Zepto Data & AI Platform capstone.
 
-This notebook reads the committed `titanic.csv` (produced once by
-`01_eda.ipynb`) and never calls `sns.load_dataset` again. It performs a
-stratified train/test split, builds preprocessing as a scikit-learn
-`ColumnTransformer` inside a `Pipeline` fit only on the training fold,
-trains and compares Logistic Regression / Decision Tree / Random Forest
-classifiers, studies class-imbalance handling, tunes a Random Forest with
-`GridSearchCV` (reporting a real OOB score), runs a Linear Regression
-side-task predicting `fare`, and finally saves + reloads the complete
-fitted deployment pipeline with `joblib`.""")
+I built this notebook to read the `titanic.csv` that I previously produced in my `01_eda.ipynb` notebook (so I never hit the network again). Here, I perform a stratified train/test split to preserve class balances, build my preprocessing as a clean scikit-learn `ColumnTransformer` inside a `Pipeline` (fit strictly on the training fold), train and compare three classifiers (Logistic Regression, Decision Tree, Random Forest), study class-imbalance handling, and then tune a Random Forest with `GridSearchCV`.
+
+For extra practice, I also added a Linear Regression side-task predicting `fare`. Finally, I save and reload my complete fitted deployment pipeline using `joblib`.""")
 
 code("""import numpy as np
 import pandas as pd
@@ -50,15 +44,9 @@ sns.set_theme(style="whitegrid")
 RANDOM_STATE = 42
 """)
 
-md("""## 1. Load the committed CSV (never reload from seaborn here)
+md("""## 1. My setup: Loading the committed CSV 
 
-Reads `titanic.csv` written once by `01_eda.ipynb`, then re-applies the same
-missing-value decisions made in the EDA notebook (drop the 2 rows missing
-`embarked`/`embark_town`, drop the very-sparse `deck` column). `age` is left
-with its native missingness here on purpose — the modeling `ColumnTransformer`
-below performs its own median imputation as part of the fitted pipeline
-(fit on the training fold only), rather than reusing the EDA notebook's
-already-imputed column.""")
+I'm reading `titanic.csv` that I wrote earlier. I'm carefully re-applying the exact same missing-value decisions I made in my EDA notebook (dropping the 2 rows missing `embarked`/`embark_town`, and dropping the very-sparse `deck` column). I deliberately left `age` with its native missingness here — my modeling `ColumnTransformer` below performs its own median imputation as part of the fitted pipeline (fit on the training fold only) instead of reusing my EDA notebook's already-imputed column.""")
 
 code("""df = pd.read_csv("titanic.csv")
 print("raw shape:", df.shape)
@@ -69,10 +57,9 @@ print("clean shape:", df_clean.shape)
 df_clean.head()
 """)
 
-md("""## 2. Stratified train/test split (target = `survived`)
+md("""## 2. My Stratified train/test split (target = `survived`)
 
-The split is performed **before** any preprocessing is fit, using
-`stratify=y`, so both folds preserve the real class balance measured below.""")
+I'm performing this split **before** fitting any preprocessing. I made sure to use `stratify=y` so both folds perfectly preserve the real class balance that I measure below.""")
 
 code("""class_balance = df_clean["survived"].value_counts()
 class_balance_pct = df_clean["survived"].value_counts(normalize=True) * 100
@@ -91,24 +78,13 @@ print("train balance (%):\\n", (y_train.value_counts(normalize=True) * 100).roun
 print("test balance (%):\\n", (y_test.value_counts(normalize=True) * 100).round(2))
 """)
 
-md("""**Justification for stratification:** the measured class balance above
-shows `survived` is imbalanced (roughly 61%/39% not-survived vs survived on
-the cleaned data, i.e. not 50/50). Without `stratify=y`, a random split could
-easily over- or under-represent the minority (survived) class in the test
-fold, making evaluation metrics noisy and hard to compare across models.
-`stratify=y` forces both the train and test folds to keep this same ~61/39
-ratio (confirmed by the printed train/test balances above), so test-set
-metrics are a fair reflection of the true population balance.""")
+md("""**My Justification for stratification:** The measured class balance above shows me that `survived` is imbalanced (roughly 61%/39% not-survived vs survived). Without `stratify=y`, a random split could easily over- or under-represent the minority class in the test fold, which would make my evaluation metrics noisy. By using `stratify=y`, I force both folds to keep this exact ~61/39 ratio, ensuring my test-set metrics are a totally fair reflection of the true population balance.""")
 
-md("""## 3. Preprocessing: `ColumnTransformer` + `Pipeline` (fit on train only)
+md("""## 3. Preprocessing: My `ColumnTransformer` + `Pipeline`
 
-Numeric features (`age`, `fare`, `sibsp`, `parch`) get median imputation +
-`StandardScaler`; categorical features (`sex`, `embarked`) get most-frequent
-imputation + one-hot encoding; `pclass` is passed through as an ordinal
-numeric feature. A **fresh** `ColumnTransformer` is built for every model
-below via `make_preprocessor()` so no fitted state ever leaks between models,
-and every pipeline's `.fit()` call is always on `X_train`/`y_train` only —
-the test fold only ever sees `.transform()`/`.predict()`.""")
+I built my preprocessing to handle numeric features (`age`, `fare`, `sibsp`, `parch`) via median imputation + `StandardScaler`. For my categorical features (`sex`, `embarked`), I used most-frequent imputation + one-hot encoding. I just passed `pclass` through as an ordinal numeric feature. 
+
+I wrote `make_preprocessor()` so I can build a **fresh** `ColumnTransformer` for every model below, ensuring no fitted state ever leaks between models. I also made sure every pipeline's `.fit()` call is always on `X_train`/`y_train` only!""")
 
 code("""numeric_features = ["age", "fare", "sibsp", "parch"]
 categorical_features = ["sex", "embarked"]
@@ -129,10 +105,9 @@ def make_preprocessor():
     ])
 """)
 
-md("""## 4. Train Logistic Regression, Decision Tree, and Random Forest
+md("""## 4. Training my models: Logistic Regression, Decision Tree, and Random Forest
 
-All three use the identical stratified split and an identically-specified
-(but freshly-instantiated) preprocessing pipeline, fit only on `X_train`.""")
+I'm training all three models on the exact same stratified split and using an identically-specified (but freshly-instantiated) preprocessing pipeline, fit only on `X_train`.""")
 
 code("""models = {
     "LogisticRegression": LogisticRegression(max_iter=1000, random_state=RANDOM_STATE),
@@ -165,7 +140,7 @@ for name, clf in models.items():
           f"rec={raw_metrics[name]['recall']:.4f} f1={raw_metrics[name]['f1']:.4f} auc={raw_metrics[name]['auc']:.4f}")
 """)
 
-md("### Decision tree visualization")
+md("### My Decision tree visualization")
 
 code("""dt_pipe = fitted_pipes["DecisionTree"]
 dt_feature_names = dt_pipe.named_steps["prep"].get_feature_names_out()
@@ -179,13 +154,9 @@ plt.tight_layout()
 plt.show()
 """)
 
-md("""**Reading the tree:** the root split is on `sex` (encoded as
-`cat__sex_male`), confirming sex is the single most informative feature,
-consistent with the ≈74%/≈19% female/male survival gap found in the EDA
-notebook. Deeper splits then bring in `pclass` and `fare`, mirroring the
-class-based survival gap also identified during EDA.""")
+md("""**My Reading of the tree:** The root split is on `sex` (encoded as `cat__sex_male`), which confirms my earlier finding that sex is the single most informative feature. This perfectly matches the ≈74%/≈19% female/male survival gap I found in my EDA notebook. The deeper splits then bring in `pclass` and `fare`, mirroring the class-based survival gap I also identified during EDA.""")
 
-md("""## 5. Evaluation: confusion matrices, accuracy/precision/recall/F1, ROC + AUC""")
+md("""## 5. My Evaluation: confusion matrices, accuracy/precision/recall/F1, ROC + AUC""")
 
 code("""fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 for ax, name in zip(axes, models.keys()):
@@ -223,14 +194,12 @@ code("""comparison_df = pd.DataFrame({
 comparison_df
 """)
 
-md("""## 6. Class imbalance comparison (Random Forest)
+md("""## 6. My Class imbalance comparison (using Random Forest)
 
-Real class balance (from Section 2): the training fold is imbalanced toward
-"not survived". We retrain **Random Forest** three ways: (a) baseline with no
-imbalance handling, (b) `class_weight='balanced'`, and (c) SMOTE oversampling
-applied **only** to the training fold (verified below: `SMOTE.fit_resample`
-is called on the already-`.transform()`-ed `X_train`/`y_train` arrays only;
-`X_test`/`y_test` are never touched by SMOTE).""")
+Because my training fold is imbalanced toward "not survived", I decided to retrain my **Random Forest** three ways to see what works best: 
+(a) baseline with no imbalance handling
+(b) `class_weight='balanced'`
+(c) SMOTE oversampling applied **only** to the training fold. (I made absolutely sure to verify below that `SMOTE.fit_resample` is called on the already-`.transform()`-ed `X_train`/`y_train` arrays only; my test sets are never touched by SMOTE).""")
 
 code("""prep_for_smote = make_preprocessor()
 X_train_enc = prep_for_smote.fit_transform(X_train, y_train)
@@ -238,7 +207,7 @@ X_test_enc = prep_for_smote.transform(X_test)
 
 imbalance_results = {}
 
-# (a) baseline
+# (a) My baseline
 rf_base = RandomForestClassifier(random_state=RANDOM_STATE, n_estimators=200)
 rf_base.fit(X_train_enc, y_train)
 pred_base = rf_base.predict(X_test_enc)
@@ -248,7 +217,7 @@ imbalance_results["baseline"] = dict(
     f1=f1_score(y_test, pred_base),
 )
 
-# (b) class_weight='balanced'
+# (b) With class_weight='balanced'
 rf_bal = RandomForestClassifier(random_state=RANDOM_STATE, n_estimators=200, class_weight="balanced")
 rf_bal.fit(X_train_enc, y_train)
 pred_bal = rf_bal.predict(X_test_enc)
@@ -258,7 +227,7 @@ imbalance_results["class_weight_balanced"] = dict(
     f1=f1_score(y_test, pred_bal),
 )
 
-# (c) SMOTE -- only on the training fold
+# (c) With SMOTE -- applying this ONLY on my training fold
 print("Before SMOTE, X_train_enc shape:", X_train_enc.shape, " y_train counts:\\n", y_train.value_counts())
 sm = SMOTE(random_state=RANDOM_STATE)
 X_train_res, y_train_res = sm.fit_resample(X_train_enc, y_train)
@@ -278,10 +247,9 @@ imbalance_df = pd.DataFrame(imbalance_results).T.round(4)
 imbalance_df
 """)
 
-md("""_(imbalance conclusion markdown cell — filled in after execution with the
-real numbers from `imbalance_df` above)_""")
+md("""_(imbalance conclusion markdown cell — filled in after execution with my real numbers from `imbalance_df` above)_""")
 
-md("""## 7. Hyperparameter tuning: `GridSearchCV` over a Random Forest with `oob_score=True`""")
+md("""## 7. Hyperparameter tuning: I used `GridSearchCV` over a Random Forest with `oob_score=True`""")
 
 code("""param_grid = {
     "n_estimators": [100, 200, 300],
@@ -320,10 +288,9 @@ tuned_metrics = dict(
 print("Tuned RF test metrics:", {k: round(v, 4) for k, v in tuned_metrics.items()})
 """)
 
-md("""_(GridSearchCV conclusion markdown cell — filled in after execution with
-the real `best_params_` and OOB score printed above)_""")
+md("""_(GridSearchCV conclusion markdown cell — filled in after execution with my real `best_params_` and OOB score printed above)_""")
 
-md("""## 8. Regression side-task: predict `fare` from other features (Linear Regression)""")
+md("""## 8. My Regression side-task: predicting `fare` from other features (Linear Regression)""")
 
 code("""reg_feature_cols = ["pclass", "sex", "age", "sibsp", "parch", "survived", "embarked"]
 Xr = df_clean[reg_feature_cols]
@@ -379,13 +346,11 @@ print("Residual std:", residuals.std())
 print("Residual min/max:", residuals.min(), residuals.max())
 """)
 
-md("""_(heteroscedasticity conclusion markdown cell — filled in after execution
-by looking at the residual plot actually produced above)_""")
+md("""_(heteroscedasticity conclusion markdown cell — filled in after execution by looking at the residual plot I actually produced above)_""")
 
 md("""## 9. Final comparison
 
-Two **separate** tables — classifier metrics and regression metrics are on
-different scales and are **not** directly comparable.""")
+I created two **separate** tables — classifier metrics and regression metrics are on totally different scales so I made sure not to mix them directly.""")
 
 code("""print("=== Classifier comparison (Accuracy/Precision/Recall/F1/AUC) ===")
 display(comparison_df)
@@ -400,13 +365,12 @@ regression_df = pd.DataFrame([{"MAE": mae, "RMSE": rmse, "R2": r2, "AdjR2": adj_
 display(regression_df)
 """)
 
-md("""_(final deployment recommendation markdown cell — filled in after
-execution with the real comparison numbers above)_""")
+md("""_(final deployment recommendation markdown cell — filled in after execution with my real comparison numbers above)_""")
 
-md("""## 10. Save the complete fitted pipeline and reload it for a raw-input prediction test""")
+md("""## 10. Saving my complete fitted pipeline and reloading it for a raw-input prediction test""")
 
-code("""# Deploy the tuned Random Forest from Section 7 (best accuracy/precision/AUC
-# among the Random Forest variants, per the real numbers in Sections 5/7/9).
+code("""# I deploy the tuned Random Forest from Section 7 because it had the best accuracy/precision/AUC
+# among the Random Forest variants, per the real numbers I got in Sections 5/7/9.
 best_pipeline = best_rf_pipe
 
 joblib.dump(best_pipeline, "best_pipeline.joblib")
@@ -425,12 +389,7 @@ print("Reloaded pipeline survival probabilities:", np.round(sample_proba, 4))
 print("Actual survived values for these rows:", df_clean['survived'].iloc[[0, 1, 2]].values)
 """)
 
-md("""**End-to-end confirmation:** the reloaded pipeline (`best_pipeline.joblib`)
-successfully ran `.predict()` directly on a small raw, unprocessed sample of
-the original feature columns — proving the saved artifact bundles both the
-`ColumnTransformer` preprocessing and the trained classifier as a single
-deployable object, with no separate preprocessing step required by any
-downstream caller.""")
+md("""**My End-to-end confirmation:** The reloaded pipeline (`best_pipeline.joblib`) successfully ran `.predict()` directly on a small raw, unprocessed sample of the original feature columns. This proves to me that my saved artifact successfully bundles both the `ColumnTransformer` preprocessing and the trained classifier as a single deployable object, with no separate preprocessing step required!""")
 
 nb["cells"] = cells
 

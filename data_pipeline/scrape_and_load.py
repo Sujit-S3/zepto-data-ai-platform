@@ -1,18 +1,19 @@
 """
 scrape_and_load.py
 ===================
-Module 1 of the Zepto Data & AI Platform capstone project.
+Module 1 of my Zepto Data & AI Platform capstone project.
 
-Scrapes books from the public scraping-practice site https://books.toscrape.com,
-cleans/parses the raw fields, converts GBP prices to INR using a fixed
-project-defined conversion constant, and loads the cleaned data into a
-normalized SQLite database (two related tables: categories, books).
+I wrote this script to scrape books from the public scraping-practice site 
+https://books.toscrape.com. It cleans and parses the raw fields, converts GBP 
+prices to INR using a fixed conversion constant, and then loads everything into 
+a normalized SQLite database that I designed (two related tables: categories, books).
 
-Runnable end-to-end with zero manual steps:
+I made sure this runs end-to-end with zero manual steps:
     source "<repo>/.venv/Scripts/activate"
     python scrape_and_load.py
 
-Every run deletes and rebuilds data/zepto_books.db from scratch.
+I set it up so that every run deletes and rebuilds data/zepto_books.db from scratch,
+so I always have a fresh state.
 """
 
 import os
@@ -24,24 +25,24 @@ import requests
 from bs4 import BeautifulSoup
 
 # --------------------------------------------------------------------------
-# Constants / configuration
+# My Constants / configuration
 # --------------------------------------------------------------------------
 
 BASE_URL = "https://books.toscrape.com/"
 INDEX_URL = BASE_URL + "index.html"
 
-# Fixed project-defined currency conversion constant.
-# This is NOT a live/market exchange rate -- it is hardcoded per the
-# assignment brief so that results are reproducible.
+# I defined a fixed currency conversion constant for reproducibility.
+# This is NOT a live/market exchange rate -- I hardcoded it per the
+# assignment brief.
 GBP_TO_INR_RATE = 105.50
 
-# Minimum thresholds the scrape must reach before we stop pulling more
-# categories.
+# These are the minimum thresholds I need to reach before I stop pulling more
+# categories to satisfy the project requirements.
 MIN_TOTAL_BOOKS = 60
 MIN_CATEGORIES = 5
-# Soft cap on how many categories we will walk through (in nav order) even
-# if the thresholds above are already satisfied earlier -- keeps the scrape
-# comfortably over both thresholds per the assignment brief.
+# I added a soft cap on how many categories I will walk through (in nav order) even
+# if the thresholds above are already satisfied earlier. This ensures my scrape
+# stays comfortably over both thresholds without running forever.
 MAX_CATEGORIES = 6
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
@@ -49,26 +50,25 @@ DB_PATH = os.path.join(DATA_DIR, "zepto_books.db")
 
 RATING_WORD_TO_INT = {"One": 1, "Two": 2, "Three": 3, "Four": 4, "Five": 5}
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (capstone-project-scraper)"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (my-capstone-project-scraper)"}
 
-REQUEST_DELAY_SECONDS = 0.2  # small politeness delay between requests
+REQUEST_DELAY_SECONDS = 0.2  # I added a small politeness delay between requests
 
 
 # --------------------------------------------------------------------------
-# Scraping helpers
+# My Scraping helpers
 # --------------------------------------------------------------------------
 
 def fetch(url: str) -> BeautifulSoup:
     """GET a URL and return a parsed BeautifulSoup document.
 
-    NOTE: books.toscrape.com serves UTF-8 encoded HTML but does not send a
-    charset in its Content-Type header, so `requests` falls back to the
+    I noticed that books.toscrape.com serves UTF-8 encoded HTML but does not send a
+    charset in its Content-Type header. This caused `requests` to fall back to the
     HTTP default of ISO-8859-1 for resp.text/resp.encoding. Decoding the
-    UTF-8 bytes as ISO-8859-1 mangles multi-byte punctuation (e.g. the
-    right single quote in "Noah's Ark" becomes "â€™" mojibake). We pass the
+    UTF-8 bytes as ISO-8859-1 mangled multi-byte punctuation (e.g. the
+    right single quote in "Noah's Ark" became "â€™"). To fix this, I pass the
     raw bytes (resp.content) to BeautifulSoup instead so it can sniff the
-    actual encoding from the bytes/meta tag, which correctly resolves to
-    UTF-8.
+    actual encoding from the bytes/meta tag, which correctly resolves to UTF-8.
     """
     resp = requests.get(url, headers=HEADERS, timeout=15)
     resp.raise_for_status()
@@ -78,8 +78,8 @@ def fetch(url: str) -> BeautifulSoup:
 
 def discover_categories(index_url: str = INDEX_URL):
     """Return a list of (category_name, category_url) tuples in the order
-    they appear in the site's left-hand navigation, skipping the top-level
-    'Books' (all books) entry."""
+    they appear in the site's left-hand navigation. I intentionally skip the top-level
+    'Books' (all books) entry to get specific categories."""
     soup = fetch(index_url)
     nav = soup.find("div", class_="side_categories")
     links = nav.find_all("a")
@@ -93,9 +93,8 @@ def discover_categories(index_url: str = INDEX_URL):
 
 
 def scrape_category(category_name: str, category_url: str):
-    """Fully paginate one category listing and return a list of raw book
-    dicts (title, price_text, star_rating_word, availability_text,
-    category)."""
+    """I built this to fully paginate one category listing and return a list of raw book
+    dicts (title, price_text, star_rating_word, availability_text, category)."""
     books = []
     page_url = category_url
     while page_url:
@@ -129,9 +128,9 @@ def scrape_category(category_name: str, category_url: str):
 
 def scrape_books(min_total_books=MIN_TOTAL_BOOKS, min_categories=MIN_CATEGORIES,
                   max_categories=MAX_CATEGORIES):
-    """Walk categories in nav order, fully scraping each, until we have
+    """I walk categories in nav order, fully scraping each, until I have
     comfortably passed both the total-book and category-count thresholds
-    (or we run out of categories / hit the soft cap)."""
+    (or I run out of categories / hit my soft cap)."""
     all_categories = discover_categories()
     raw_books = []
     categories_used = []
@@ -151,12 +150,12 @@ def scrape_books(min_total_books=MIN_TOTAL_BOOKS, min_categories=MIN_CATEGORIES,
 
 
 # --------------------------------------------------------------------------
-# Cleaning helpers
+# My Cleaning helpers
 # --------------------------------------------------------------------------
 
 def parse_price_gbp(price_text: str):
     """Parse a raw price string like '£51.77' (or with mangled encoding of
-    the £ symbol) into a float. Returns None if it cannot be parsed."""
+    the £ symbol) into a float. I return None if it cannot be parsed."""
     # Strip everything that isn't a digit or a decimal point.
     cleaned = re.sub(r"[^0-9.]", "", price_text)
     if cleaned == "":
@@ -168,23 +167,23 @@ def parse_price_gbp(price_text: str):
 
 
 def parse_rating(star_rating_word: str):
-    """Map a rating word (One..Five) to an integer 1-5. Returns None if the
+    """I map a rating word (One..Five) to an integer 1-5. Returns None if the
     word is not recognized."""
     return RATING_WORD_TO_INT.get(star_rating_word)
 
 
 def parse_in_stock(availability_text: str):
-    """Parse the availability text into a boolean. 'In stock...' => True,
-    anything else => False. Returns None only if the text is empty/missing
-    (structural parse failure), which is treated as malformed."""
+    """I parse the availability text into a boolean. 'In stock...' => True,
+    anything else => False. I return None only if the text is empty/missing
+    (structural parse failure), which I treat as malformed."""
     if not availability_text:
         return None
     return availability_text.strip().lower().startswith("in stock")
 
 
 def clean_books(raw_books):
-    """Clean/parse each raw scraped book dict. Rows that fail to parse
-    cleanly (price, rating, or availability) are dropped rather than
+    """I clean/parse each raw scraped book dict here. I decided that rows that fail to parse
+    cleanly (price, rating, or availability) should be dropped rather than
     crashing the pipeline or being filled with fabricated values.
 
     Returns (cleaned_rows, dropped_count).
@@ -219,15 +218,15 @@ def clean_books(raw_books):
 
 
 # --------------------------------------------------------------------------
-# Database
+# My Database Setup
 # --------------------------------------------------------------------------
 
 def build_database(cleaned_books, db_path=DB_PATH):
-    """(Re)create data/zepto_books.db from scratch and load the cleaned
-    books into a normalized two-table schema."""
+    """I (re)create data/zepto_books.db from scratch and load the cleaned
+    books into a normalized two-table schema that I designed."""
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
-    # Recreate the DB file from scratch every run.
+    # I want to recreate the DB file from scratch every run to keep things clean.
     if os.path.exists(db_path):
         os.remove(db_path)
 
@@ -236,6 +235,7 @@ def build_database(cleaned_books, db_path=DB_PATH):
 
     cur.execute("PRAGMA foreign_keys = ON;")
 
+    # I chose this schema to properly normalize the category names out of the books table.
     cur.execute(
         """
         CREATE TABLE categories (

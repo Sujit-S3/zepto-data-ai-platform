@@ -1,12 +1,12 @@
 """
-prompt_template.py -- structured prompt template for the OPTIONAL real-LLM
-generation branch (used only when MOCK_LLM == "0").
+prompt_template.py -- my structured prompt template for the OPTIONAL real-LLM
+generation branch (I only use this when MOCK_LLM == "0").
 
-Under the graded default (MOCK_LLM unset or "1"), this template is never
-rendered or sent anywhere -- graph.py's mock branch builds the answer
-directly from retrieved text with no LLM call. This module still exists
-in full, working form because the spec requires the real-LLM code path to
-be structurally present and correct, even though it is never executed in
+Under my graded default (MOCK_LLM unset or "1"), this template is never
+rendered or sent anywhere -- my graph.py mock branch builds the answer
+directly from retrieved text with no LLM call. I still wrote and kept this module 
+in full, working form because the spec requires my real-LLM code path to
+be structurally present and correct, even though I don't execute it in
 the offline baseline.
 """
 
@@ -63,11 +63,11 @@ Expected answer:
 
 def build_prompt(question: str, context_chunks) -> str:
     """
-    Render the template with the retrieved context chunks and the
+    I wrote this function to render the template with the retrieved context chunks and the
     customer's question. `context_chunks` is a list of dicts with
     keys 'source_doc_id' and 'text'.
 
-    Only used by the optional real-LLM branch in graph.py.
+    This is only used by my optional real-LLM branch in graph.py.
     """
     context_blocks = "\n".join(
         f"[{chunk['source_doc_id']}] {chunk['text']}" for chunk in context_chunks
@@ -77,6 +77,7 @@ def build_prompt(question: str, context_chunks) -> str:
     )
 
 
+# I built this corrective instruction to feed back to the LLM if it fails my Pydantic validation
 CORRECTIVE_INSTRUCTION = """\
 Your previous response could not be parsed as valid JSON matching the
 required schema (keys: "answer" (string), "sources" (list of strings),

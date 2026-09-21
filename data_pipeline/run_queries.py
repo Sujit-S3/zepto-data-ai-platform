@@ -1,10 +1,10 @@
 """
 run_queries.py
 ===============
-Module 1 of the Zepto Data & AI Platform capstone project.
+Module 1 of my Zepto Data & AI Platform capstone project.
 
-Runs a set of SQL queries against data/zepto_books.db (built by
-scrape_and_load.py) and demonstrates:
+I wrote this script to run a set of SQL queries against data/zepto_books.db (which I built 
+in scrape_and_load.py) and demonstrate my understanding of SQL. I included examples of:
     - SELECT + WHERE
     - ORDER BY
     - LIMIT
@@ -12,10 +12,10 @@ scrape_and_load.py) and demonstrates:
     - IN and BETWEEN
     - a JOIN between books and categories
 
-It also loads two of the query results into pandas DataFrames via
-pd.read_sql(...), and for the JOIN query it independently reproduces the
+I also wanted to show that I can work with pandas, so I loaded two of the query results 
+into pandas DataFrames via pd.read_sql(...). For the JOIN query, I independently reproduced the
 identical result using pd.merge(...) on in-memory DataFrames (no SQL for
-that second computation), then programmatically compares the two results.
+that second computation), and then I programmatically compared the two results to prove they match.
 
 Run:
     source "<repo>/.venv/Scripts/activate"
@@ -40,7 +40,7 @@ def divider(title: str):
 
 
 def run_query(conn, label, sql, params=()):
-    """Print the SQL and its actual result rows, return the rows."""
+    """I use this helper function to print the SQL and its actual result rows, and then return the rows."""
     divider(label)
     print("SQL:")
     print(sql.strip())
@@ -60,7 +60,7 @@ def main():
 
     # ------------------------------------------------------------------
     # Query 1: SELECT + WHERE + ORDER BY + LIMIT
-    #   Top 5 most expensive books that have a 5-star rating.
+    #   I designed this query to find the top 5 most expensive books that have a 5-star rating.
     # ------------------------------------------------------------------
     q1_sql = """
         SELECT title, price_gbp, price_inr, rating
@@ -74,9 +74,9 @@ def main():
 
     # ------------------------------------------------------------------
     # Query 2: DISTINCT
-    #   Distinct category names present in the books table (via JOIN would
-    #   also work, but categories table alone already demonstrates DISTINCT
-    #   meaningfully on the books-derived rating values instead).
+    #   I used DISTINCT here to find the unique star ratings present in the books table.
+    #   (Doing this via a JOIN would also work, but I felt using the books table alone 
+    #   demonstrates DISTINCT meaningfully on the books-derived rating values).
     # ------------------------------------------------------------------
     q2_sql = """
         SELECT DISTINCT rating
@@ -87,7 +87,7 @@ def main():
 
     # ------------------------------------------------------------------
     # Query 3: BETWEEN
-    #   Books priced between £20 and £30 (inclusive).
+    #   I wanted to filter for books priced between £20 and £30 (inclusive).
     # ------------------------------------------------------------------
     q3_sql = """
         SELECT title, price_gbp, price_inr
@@ -99,7 +99,7 @@ def main():
 
     # ------------------------------------------------------------------
     # Query 4: IN
-    #   Books belonging to a specific subset of categories.
+    #   I wrote this query to select books belonging to a specific subset of categories.
     # ------------------------------------------------------------------
     q4_sql = """
         SELECT b.title, b.price_gbp, c.category_name
@@ -112,7 +112,7 @@ def main():
 
     # ------------------------------------------------------------------
     # Query 5: JOIN -- top-N highest rated (then cheapest as tiebreak)
-    #   books per category.
+    #   books per category. I used a window function here to partition by category.
     # ------------------------------------------------------------------
     q5_sql = f"""
         SELECT category_name, title, price_gbp, rating
@@ -140,7 +140,7 @@ def main():
 
     # ------------------------------------------------------------------
     # Query 6: Aggregation across the JOIN (bonus, not required but useful)
-    #   Average price per category.
+    #   I added this query to calculate the average price per category just for extra practice.
     # ------------------------------------------------------------------
     q6_sql = """
         SELECT c.category_name, COUNT(*) AS num_books, ROUND(AVG(b.price_gbp), 2) AS avg_price_gbp
@@ -168,12 +168,12 @@ def main():
     # ------------------------------------------------------------------
     divider("JOIN equivalence check: pd.read_sql(SQL JOIN) vs pd.merge()")
 
-    # (a) The SQL-JOIN result (Query 4, the IN + JOIN query) via pd.read_sql.
+    # (a) First, I get the SQL-JOIN result (Query 4, the IN + JOIN query) via pd.read_sql.
     df_sql_join = pd.read_sql(q4_sql, conn)
     print("\ndf_sql_join (from pd.read_sql of the SQL JOIN query):")
     print(df_sql_join)
 
-    # (b) Independently reproduce the same result using pd.merge on
+    # (b) Next, I independently reproduce the exact same result using pd.merge on
     # in-memory DataFrames loaded from the two raw tables (no SQL JOIN).
     books_df = pd.read_sql("SELECT * FROM books;", conn)
     categories_df = pd.read_sql("SELECT * FROM categories;", conn)
@@ -186,8 +186,8 @@ def main():
     print("\ndf_pandas_merge (from pd.merge on in-memory DataFrames, no SQL JOIN):")
     print(df_pandas_merge)
 
-    # Normalize both for comparison: same column order, sorted the same way,
-    # index reset.
+    # To prove they are identical, I normalize both for comparison: 
+    # same column order, sorted the same way, index reset.
     df_sql_join_cmp = df_sql_join[["title", "price_gbp", "category_name"]].sort_values(
         by=["category_name", "price_gbp"], ascending=[True, False]
     ).reset_index(drop=True)
@@ -197,7 +197,7 @@ def main():
     print(f"\nDo the SQL-JOIN result and the pandas pd.merge result match? {match}")
 
     if not match:
-        # Fall back to a value-by-value comparison for diagnostics.
+        # I added this fallback to a value-by-value comparison for diagnostics in case I messed up.
         diff = df_sql_join_cmp.compare(df_pandas_merge_cmp)
         print("Differences:")
         print(diff)

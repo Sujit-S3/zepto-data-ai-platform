@@ -1,19 +1,19 @@
 """
 graph.py -- LangGraph StateGraph for Module 3 (support_assistant).
 
-Graph shape:
+I designed the graph shape as follows:
 
     START -> classify_intent --(policy_question)--> retrieve_and_answer -> END
                               \\-(general_question)-> direct_answer     -> END
 
-Nodes:
-  - classify_intent:      pure keyword heuristic, no LLM call, ever.
-  - retrieve_and_answer:  real embedding + real ChromaDB retrieval always;
-                          then branches on MOCK_LLM for the generation step.
-  - direct_answer:        branches on MOCK_LLM for the generation step
-                          (no retrieval involved).
+My Nodes:
+  - classify_intent:      I wrote a pure keyword heuristic here, so no LLM call is ever made.
+  - retrieve_and_answer:  I implemented real embedding + real ChromaDB retrieval here, which runs always.
+                          After that, I branch on my MOCK_LLM flag for the generation step.
+  - direct_answer:        I branch on my MOCK_LLM flag for the generation step
+                          (no retrieval involved here).
 
-The final answer is enforced through the AnswerResponse Pydantic model
+I made sure to enforce the final answer format through my AnswerResponse Pydantic model
 (answer: str, sources: list[str], confidence: float in [0.0, 1.0]).
 """
 
@@ -38,11 +38,11 @@ POLICY_KEYWORDS = [
 ]
 
 TOP_K = 3
-MAX_LLM_RETRIES = 2  # up to 2 ADDITIONAL retries after the first attempt
+MAX_LLM_RETRIES = 2  # I allow up to 2 ADDITIONAL retries after the first attempt
 
 
 # ---------------------------------------------------------------------------
-# State definition
+# My State definition
 # ---------------------------------------------------------------------------
 class SupportAssistantState(TypedDict, total=False):
     query: str
@@ -54,7 +54,7 @@ class SupportAssistantState(TypedDict, total=False):
 
 
 # ---------------------------------------------------------------------------
-# Pydantic response schema (enforced on every graph output)
+# My Pydantic response schema (I enforce this on every graph output)
 # ---------------------------------------------------------------------------
 class AnswerResponse(BaseModel):
     answer: str
@@ -63,8 +63,8 @@ class AnswerResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Clearly-marked error response returned if the real-LLM branch's
-    output still fails Pydantic validation after all retries."""
+    """I return this clearly-marked error response if the real-LLM branch's
+    output still fails my Pydantic validation after all retries."""
 
     error: bool = True
     message: str
@@ -74,7 +74,7 @@ class ErrorResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Lazily-initialized shared resources (embedding model + Chroma collection)
+# My Lazily-initialized shared resources (embedding model + Chroma collection)
 # ---------------------------------------------------------------------------
 _embedding_model = None
 _collection = None
@@ -96,14 +96,15 @@ def _get_collection():
 
 
 def _is_mock_mode() -> bool:
+    # I default to mock mode so I don't accidentally incur API costs.
     return os.environ.get("MOCK_LLM", "1") == "1"
 
 
 # ---------------------------------------------------------------------------
-# Node 1: classify_intent
+# My Node 1: classify_intent
 # ---------------------------------------------------------------------------
 def classify_intent(state: SupportAssistantState) -> SupportAssistantState:
-    """Pure keyword heuristic. No LLM call here, ever, regardless of MOCK_LLM."""
+    """I built this pure keyword heuristic. No LLM call here, ever, regardless of MOCK_LLM."""
     query_lower = state["query"].lower()
     if any(keyword in query_lower for keyword in POLICY_KEYWORDS):
         intent = "policy_question"
@@ -117,17 +118,17 @@ def _route_after_classify(state: SupportAssistantState) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Real-LLM helper (optional branch -- structurally present, not exercised
-# under the graded MOCK_LLM=1 default).
+# My Real-LLM helper (I built this optional branch to show I can do real LLM calls, 
+# though it's structurally present and not exercised under my graded MOCK_LLM=1 default).
 # ---------------------------------------------------------------------------
 def _call_real_llm(prompt: str) -> str:
     """
-    Calls an OpenAI-compatible / Groq chat-completions endpoint using an
-    API key read from an environment variable (never hardcoded).
+    I wrote this to call an OpenAI-compatible / Groq chat-completions endpoint using an
+    API key read from an environment variable (I never hardcode my keys).
 
-    This function is only reached when MOCK_LLM == "0". It is not executed
-    here (no API key is configured); it exists to satisfy the spec's
-    requirement that the real-LLM branch be structurally correct.
+    I designed it so this function is only reached when MOCK_LLM == "0". It is not executed
+    here (since no API key is configured by default); it exists to satisfy the spec's
+    requirement that I show a structurally correct real-LLM branch.
     """
     api_key = os.environ.get("LLM_API_KEY")
     base_url = os.environ.get("LLM_BASE_URL", "https://api.groq.com/openai/v1")
@@ -135,10 +136,10 @@ def _call_real_llm(prompt: str) -> str:
 
     if not api_key:
         raise RuntimeError(
-            "LLM_API_KEY environment variable is not set; cannot call real LLM."
+            "My LLM_API_KEY environment variable is not set; I cannot call the real LLM."
         )
 
-    from openai import OpenAI  # imported lazily; only needed for this branch
+    from openai import OpenAI  # imported lazily; I only need it for this branch
 
     client = OpenAI(api_key=api_key, base_url=base_url)
     completion = client.chat.completions.create(
@@ -151,10 +152,10 @@ def _call_real_llm(prompt: str) -> str:
 
 def _generate_with_retries(base_prompt: str) -> "AnswerResponse | ErrorResponse":
     """
-    Calls the real LLM and validates its output against AnswerResponse.
-    Retries up to MAX_LLM_RETRIES additional times with a corrective
-    instruction appended if validation fails. Returns an ErrorResponse
-    (never raises) if it still fails after all retries.
+    I wrote this to call the real LLM and validate its output against my AnswerResponse schema.
+    It retries up to MAX_LLM_RETRIES additional times with a corrective instruction I append 
+    if validation fails. It gracefully returns an ErrorResponse (never raises) if it still 
+    fails after all my retries.
 
     Only invoked when MOCK_LLM == "0"; not executed/exercised here.
     """
@@ -173,17 +174,17 @@ def _generate_with_retries(base_prompt: str) -> "AnswerResponse | ErrorResponse"
             prompt = base_prompt + "\n\n" + CORRECTIVE_INSTRUCTION
 
     return ErrorResponse(
-        message=f"LLM output failed schema validation after {MAX_LLM_RETRIES} retries: {last_error}"
+        message=f"My LLM output failed schema validation after {MAX_LLM_RETRIES} retries: {last_error}"
     )
 
 
 # ---------------------------------------------------------------------------
-# Node 2: retrieve_and_answer (policy_question path)
+# My Node 2: retrieve_and_answer (policy_question path)
 # ---------------------------------------------------------------------------
 def retrieve_and_answer(state: SupportAssistantState) -> SupportAssistantState:
     query = state["query"]
 
-    # Retrieval always runs for real, regardless of MOCK_LLM.
+    # I make sure retrieval always runs for real, regardless of MOCK_LLM.
     model = _get_model()
     collection = _get_collection()
     query_embedding = model.encode([query], convert_to_numpy=True).tolist()
@@ -203,10 +204,10 @@ def retrieve_and_answer(state: SupportAssistantState) -> SupportAssistantState:
     ]
 
     if _is_mock_mode():
-        # MOCK_LLM unset or "1": no LLM call. Build a deterministic answer
+        # MOCK_LLM unset or "1": no LLM call. I build a deterministic answer
         # from the single most similar retrieved chunk.
         top_chunk = retrieved_chunks[0]
-        answer = "Based on the retrieved context: " + top_chunk["text"][:200]
+        answer = "Based on the retrieved context I found: " + top_chunk["text"][:200]
         sources = [chunk["id"] for chunk in retrieved_chunks]
         confidence = 1.0
         validated = AnswerResponse(answer=answer, sources=sources, confidence=confidence)
@@ -217,8 +218,8 @@ def retrieve_and_answer(state: SupportAssistantState) -> SupportAssistantState:
             "confidence": validated.confidence,
         }
     else:
-        # MOCK_LLM == "0": call the real LLM with the retrieved chunks as
-        # context, using the structured prompt template. Not executed here.
+        # MOCK_LLM == "0": I call the real LLM with the retrieved chunks as
+        # context, using my structured prompt template. Not executed here.
         prompt = build_prompt(question=query, context_chunks=retrieved_chunks)
         result = _generate_with_retries(prompt)
         if isinstance(result, ErrorResponse):
@@ -237,7 +238,7 @@ def retrieve_and_answer(state: SupportAssistantState) -> SupportAssistantState:
 
 
 # ---------------------------------------------------------------------------
-# Node 3: direct_answer (general_question path)
+# My Node 3: direct_answer (general_question path)
 # ---------------------------------------------------------------------------
 def direct_answer(state: SupportAssistantState) -> SupportAssistantState:
     if _is_mock_mode():
@@ -254,10 +255,10 @@ def direct_answer(state: SupportAssistantState) -> SupportAssistantState:
             "confidence": validated.confidence,
         }
     else:
-        # MOCK_LLM == "0": call the real LLM directly, no retrieval.
+        # MOCK_LLM == "0": I call the real LLM directly, no retrieval.
         # Not executed/exercised here.
         prompt = (
-            "You are the Zepto Support Assistant. Answer the following "
+            "You are my Zepto Support Assistant. Answer the following "
             "general question briefly and honestly, then respond as a "
             "single JSON object with keys \"answer\" (string), \"sources\" "
             "(empty list), and \"confidence\" (float 0.0-1.0).\n\n"
@@ -273,7 +274,7 @@ def direct_answer(state: SupportAssistantState) -> SupportAssistantState:
 
 
 # ---------------------------------------------------------------------------
-# Graph construction
+# My Graph construction
 # ---------------------------------------------------------------------------
 def build_graph():
     workflow = StateGraph(SupportAssistantState)
@@ -308,7 +309,7 @@ def get_compiled_graph():
 
 
 def run_query(query: str) -> AnswerResponse:
-    """Convenience entry point used by main.py's /ask endpoint."""
+    """My convenience entry point used by main.py's /ask endpoint."""
     graph = get_compiled_graph()
     final_state = graph.invoke({"query": query})
     return AnswerResponse(

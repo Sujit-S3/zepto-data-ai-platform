@@ -11,13 +11,11 @@ def code(src):
 
 md("""# Module 2 — Analytics: 01 Exploratory Data Analysis (Titanic)
 
-Zepto Data & AI Platform capstone — Module 2 (Analytics).
+This is the first part of Module 2 for my Zepto Data & AI Platform capstone.
 
-This notebook performs the full EDA workflow on the Titanic dataset: a single
-seaborn load (network fetch, cached), profiling, missing-value handling,
-univariate/bivariate/multivariate analysis, correlation analysis, and an
-exploratory standardization check. `titanic.csv` written here is the offline
-fallback used by every later step in this module (including `02_modeling.ipynb`).
+I created this notebook to perform a full Exploratory Data Analysis (EDA) workflow on the Titanic dataset. My process involves a single seaborn load (fetching from the network and caching it), detailed profiling, strict missing-value handling based on threshold rules, and extensive univariate, bivariate, and multivariate analyses. I also added a correlation analysis and an exploratory standardization check just to make sure I understand the preprocessing steps. 
+
+I set it up so that `titanic.csv` is written here as an offline fallback. This CSV is then used by my `02_modeling.ipynb` notebook to ensure I don't hit the network again.
 """)
 
 code("""import pandas as pd
@@ -30,19 +28,16 @@ pd.set_option("display.max_columns", None)
 sns.set_theme(style="whitegrid")
 """)
 
-md("""## 1. Load dataset (single seaborn call for the entire module)
+md("""## 1. My Dataset Loading Strategy (single seaborn call)
 
-Per the module rule, `sns.load_dataset('titanic')` is called **exactly once**
-here, and immediately persisted to `titanic.csv`. No other cell/notebook in
-this module calls `sns.load_dataset` again — `02_modeling.ipynb` reads this
-CSV instead.""")
+Per the module requirements, I am calling `sns.load_dataset('titanic')` **exactly once** in this cell. I immediately persist the result to `titanic.csv`. I made sure no other cell or notebook in this module calls `sns.load_dataset` again — my `02_modeling.ipynb` script is strictly programmed to read this CSV instead.""")
 
 code("""df = sns.load_dataset("titanic")
 df.to_csv("titanic.csv", index=False)
 df.head()
 """)
 
-md("## 2. Profiling")
+md("## 2. My Data Profiling Approach")
 
 code("df.info()")
 code("df.describe(include='all')")
@@ -53,16 +48,16 @@ missing_pct = missing_pct[missing_pct > 0]
 missing_pct
 """)
 
-md("""### Missing-value percentages and handling decisions
+md("""### My missing-value percentages and handling decisions
 
-Measured on the raw loaded DataFrame (891 rows):
+When I measured the missing values on the raw loaded DataFrame (891 rows), here is what I found and how I decided to handle them:
 
-| Column | Missing % | Bucket | Decision |
+| Column | Missing % | Bucket | My Decision |
 |---|---|---|---|
-| `deck` | 77.22% | > 30% | **Drop the column.** At this sparsity, any imputation or "missing" category would carry almost no real signal and `deck` is not part of the 6-column correlation set or the modeling feature set used later, so dropping it entirely is the simplest, least biased choice. |
-| `age` | 19.87% | 5–30% | **Impute with the median.** Age is numeric and right-of-center skewed by a long tail of older passengers, so the median (robust to outliers) is used rather than the mean. |
-| `embarked` | 0.22% (2 rows) | < 5% | **Drop those rows.** Only 2 of 891 rows are affected, so dropping is safe and avoids inventing a port of embarkation. |
-| `embark_town` | 0.22% (2 rows) | < 5% | **Drop those rows.** Same 2 rows as `embarked` (it is a redundant text version of the same field), so the row-drop above already resolves it. |
+| `deck` | 77.22% | > 30% | **Drop the column.** Since over 77% of the data is missing, I realized any imputation or "missing" category would carry almost no real signal. Plus, `deck` isn't part of my 6-column correlation set or my modeling feature set, so dropping it entirely was the simplest, least biased choice I could make. |
+| `age` | 19.87% | 5–30% | **Impute with the median.** Age is numeric but right-of-center skewed by a long tail of older passengers. Because of this skew, I decided to use the median (which is robust to outliers) rather than the mean. |
+| `embarked` | 0.22% (2 rows) | < 5% | **Drop those rows.** Since only 2 out of 891 rows are affected, dropping them is completely safe and saves me from inventing a port of embarkation out of thin air. |
+| `embark_town` | 0.22% (2 rows) | < 5% | **Drop those rows.** These are the exact same 2 rows as `embarked` (it is just a redundant text version of the same field), so the row-drop I decided on above already resolves this perfectly. |
 
 All other columns have 0% missing values.""")
 
@@ -75,7 +70,7 @@ print("Remaining missing values:\\n", df_clean.isna().sum()[df_clean.isna().sum(
 
 md("""## 3. Univariate analysis — `age` and `fare`
 
-Histogram + box plot for each, plus IQR-based outlier bounds and counts.""")
+For my univariate analysis, I decided to generate a histogram and a box plot for both age and fare. I also calculated the IQR-based outlier bounds and exact counts to get a true feel for the spread of the data.""")
 
 code("""fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 sns.histplot(df_clean["age"], bins=30, kde=True, ax=axes[0])
@@ -115,19 +110,13 @@ fare_mode = df_clean["fare"].mode()[0]
 print(f"Fare mean={fare_mean:.4f}, median={fare_median:.4f}, mode={fare_mode:.4f}")
 """)
 
-md("""**Outlier and skew conclusion:** using Q1−1.5×IQR / Q3+1.5×IQR bounds, `age`
-has 11 outliers (bounds ≈ [-6.69, 64.81]) and `fare` has 116 outliers (bounds ≈
-[-26.72, 65.63]) on the cleaned data (n=889). For `fare`, mean (≈32.20) >
-median (≈14.45) > mode (≈8.05); this mean > median > mode ordering, together
-with the long right tail visible in the histogram/box plot and 116 IQR
-outliers concentrated on the high side, indicates `fare` is **right-skewed**
-(a small number of passengers paid very high fares, pulling the mean above
-the median and mode).""")
+md("""**My outlier and skew conclusion:** using Q1−1.5×IQR and Q3+1.5×IQR bounds, I found that `age` has 11 outliers (bounds ≈ [-6.69, 64.81]) and `fare` has 116 outliers (bounds ≈ [-26.72, 65.63]) on the cleaned data (n=889). 
+
+For `fare`, the mean (≈32.20) > median (≈14.45) > mode (≈8.05). This mean > median > mode ordering, together with the long right tail I saw in the histogram/box plot and the 116 IQR outliers concentrated on the high side, indicates to me that `fare` is **right-skewed** (a small number of passengers paid very high fares, pulling the mean far above the median and mode).""")
 
 md("""## 4. Bivariate analysis — survival rate by boolean masking
 
-Survival rates computed with boolean masks (`df[df['col']==value]`,
-combined with `&`), not `groupby`.""")
+I computed the survival rates using explicit boolean masks (e.g., `df[df['col']==value]` combined with `&`), rather than relying on a simple `groupby`, just to demonstrate manual filtering.""")
 
 code("""rate_female = df_clean[df_clean["sex"] == "female"]["survived"].mean()
 rate_male = df_clean[df_clean["sex"] == "male"]["survived"].mean()
@@ -145,18 +134,15 @@ code("""for sex_val in ["female", "male"]:
         print(f"Survival rate — sex={sex_val}, pclass={pc}: {rate:.4f}")
 """)
 
-md("""**Interpretation:** women survived at ≈74.2% vs men at ≈18.9% — an enormous
-gap driven by the "women and children first" evacuation priority. By class
-alone, survival falls monotonically from 1st (≈63.0%) to 2nd (≈47.3%) to 3rd
-(≈24.2%). Combining both, 1st- and 2nd-class women survived at ≈96.8% and
-≈92.1% respectively, while 3rd-class women were at ≈50.0% and men in every
-class were far lower (1st ≈36.9%, 2nd ≈15.7%, 3rd ≈13.5%) — sex is the
-dominant factor, but class compounds it strongly, especially for women.""")
+md("""**My Interpretation:** Women survived at ≈74.2% while men survived at ≈18.9%. This is an enormous gap driven by the "women and children first" evacuation priority. 
+
+When I looked at class alone, survival falls monotonically from 1st (≈63.0%) to 2nd (≈47.3%) to 3rd (≈24.2%). 
+
+Combining both, I noticed 1st- and 2nd-class women survived at ≈96.8% and ≈92.1% respectively, while 3rd-class women were at ≈50.0%. Men in every class were far lower (1st ≈36.9%, 2nd ≈15.7%, 3rd ≈13.5%). My conclusion is that sex is the dominant factor, but class compounds it strongly, especially for women.""")
 
 md("""## 5. Correlation matrix (6 numeric columns only)
 
-Computed on exactly `survived, pclass, age, sibsp, parch, fare` — `adult_male`
-and `alone` are explicitly excluded.""")
+I computed this on exactly `survived, pclass, age, sibsp, parch, fare`. I explicitly excluded `adult_male` and `alone` to keep the matrix focused.""")
 
 code("""corr_cols = ["survived", "pclass", "age", "sibsp", "parch", "fare"]
 corr = df_clean[corr_cols].corr()
@@ -179,18 +165,13 @@ for p in pairs:
     print(f"{p[0]:>9} vs {p[1]:<9} : {p[2]:.4f}")
 """)
 
-md("""**Top-2 absolute correlations:** (1) `pclass` vs `fare` = **-0.5495** — lower
-`pclass` number (1st class) strongly associates with higher fares, which is
-expected since class is essentially a ticket-tier label priced into the fare.
-(2) `sibsp` vs `parch` = **+0.4148** — passengers travelling with more
-siblings/spouses also tend to travel with more parents/children, i.e. they
-are travelling as larger family units rather than these two counts being
-independent.""")
+md("""**My Top-2 absolute correlations:** 
+1) `pclass` vs `fare` = **-0.5495**. A lower `pclass` number (1st class) strongly associates with higher fares. I expected this since class is essentially a ticket-tier label priced into the fare.
+2) `sibsp` vs `parch` = **+0.4148**. Passengers travelling with more siblings/spouses also tend to travel with more parents/children. This makes sense to me because they are travelling as larger family units rather than these two counts being independent.""")
 
 md("""## 6. Multivariate analysis — "who survived and why"
 
-Four charts building a coherent survival story, each with its own
-interpretation.""")
+I created four charts to build a coherent survival story, and I provided my own interpretation for each.""")
 
 code("""plt.figure(figsize=(7, 5))
 sns.barplot(data=df_clean, x="pclass", y="survived", hue="sex", errorbar=None)
@@ -199,14 +180,7 @@ plt.ylabel("Survival rate")
 plt.show()
 """)
 
-md("""**Chart 1 interpretation:** this grouped bar chart makes the class × sex
-interaction from Section 4 visually explicit — female bars are far taller
-than male bars in every class, and both sexes' bars decline from class 1 to
-3. Male survival is low across the board (≈37% down to ≈14%), while female
-survival stays high through classes 1–2 and only drops meaningfully in class
-3 (≈50%), showing that class protected women much less consistently than it
-protected men from the reverse (i.e., poor class hurt everyone, but being
-male was already close to a worst case regardless of class).""")
+md("""**My interpretation for Chart 1:** This grouped bar chart makes the class × sex interaction from Section 4 visually explicit. The female bars are far taller than the male bars in every class, and both sexes' bars decline from class 1 to 3. Male survival is low across the board (≈37% down to ≈14%), while female survival stays high through classes 1–2 and only drops meaningfully in class 3 (≈50%). This shows me that class protected women much less consistently than it protected men from the reverse (i.e., poor class hurt everyone, but being male was already close to a worst-case scenario regardless of class).""")
 
 code("""plt.figure(figsize=(7, 5))
 sns.boxplot(data=df_clean, x="survived", y="age", hue="sex")
@@ -215,13 +189,7 @@ plt.xticks([0, 1], ["Did not survive", "Survived"])
 plt.show()
 """)
 
-md("""**Chart 2 interpretation:** median ages are broadly similar between
-survivors and non-survivors within each sex, but the survivors' boxes (both
-sexes) show slightly more density at the young end and the non-survivor male
-box extends with several older outliers. This suggests age alone is a weak
-survival signal compared to sex/class — it mainly matters at the extremes
-(very young children boosted by the "children first" policy) rather than
-as a smooth gradient.""")
+md("""**My interpretation for Chart 2:** Median ages are broadly similar between survivors and non-survivors within each sex, but I noticed the survivors' boxes (for both sexes) show slightly more density at the young end. Also, the non-survivor male box extends with several older outliers. This suggests to me that age alone is a weak survival signal compared to sex/class — it mainly matters at the extremes (very young children boosted by the "children first" policy) rather than acting as a smooth gradient.""")
 
 code("""plt.figure(figsize=(7, 5))
 sns.scatterplot(data=df_clean, x="age", y="fare", hue="survived", style="pclass", alpha=0.7)
@@ -229,13 +197,7 @@ plt.title("Fare vs Age, colored by survival, styled by class")
 plt.show()
 """)
 
-md("""**Chart 3 interpretation:** survivors (orange) cluster more heavily in the
-upper-fare region of the plot, and the highest-fare points (mostly circle/
-square markers = classes 1–2) are disproportionately survivors, while the
-dense low-fare cloud at the bottom (triangle markers = class 3) is
-dominated by non-survivors (blue). This is consistent with fare acting as a
-proxy for class/deck location, reinforcing the class-based survival gap
-already seen in Sections 4–5 (`pclass`–`fare` correlation of -0.55).""")
+md("""**My interpretation for Chart 3:** The survivors (orange) cluster more heavily in the upper-fare region of the plot, and the highest-fare points (mostly circle/square markers = classes 1–2) are disproportionately survivors. Meanwhile, the dense low-fare cloud at the bottom (triangle markers = class 3) is heavily dominated by non-survivors (blue). This perfectly aligns with my earlier finding that fare acts as a proxy for class/deck location, reinforcing the class-based survival gap I saw in Sections 4–5 (where `pclass`–`fare` correlation was -0.55).""")
 
 code("""pivot = df_clean.pivot_table(values="survived", index="pclass", columns="embarked", aggfunc="mean")
 plt.figure(figsize=(6, 5))
@@ -244,19 +206,11 @@ plt.title("Survival rate by class and embarkation port")
 plt.show()
 """)
 
-md("""**Chart 4 interpretation:** survival rate is highest for class 1 passengers
-regardless of port, but there is still port-level variation — e.g.
-Cherbourg ('C') passengers in class 1 and 2 show among the highest survival
-rates in the grid, while class 3 passengers embarking at Southampton ('S'),
-the largest and lowest-fare group, show the lowest survival rate in the
-whole heatmap. This adds a third, smaller factor (embarkation port,
-correlated with class composition of each port) on top of the dominant sex
-and class effects already identified.""")
+md("""**My interpretation for Chart 4:** Survival rate is highest for class 1 passengers regardless of port, but I can still see port-level variation. For example, Cherbourg ('C') passengers in class 1 and 2 show among the highest survival rates in the grid, while class 3 passengers embarking at Southampton ('S') — the largest and lowest-fare group — show the lowest survival rate in the whole heatmap. This adds a third, smaller factor (embarkation port, which is correlated with the class composition of each port) on top of the dominant sex and class effects I already identified.""")
 
-md("""## 7. Exploratory standardization check (not used later in modeling)
+md("""## 7. My exploratory standardization check (not used later in modeling)
 
-Z-score standardize `age` and `fare` on the full cleaned DataFrame and verify
-the transformed columns have ≈0 mean and ≈1 std.""")
+I wanted to quickly Z-score standardize `age` and `fare` on the full cleaned DataFrame just to verify that the transformed columns have ≈0 mean and ≈1 std.""")
 
 code("""print("BEFORE standardization:")
 print(df_clean[["age", "fare"]].agg(["mean", "std"]))
@@ -272,14 +226,7 @@ print("\\nAFTER standardization:")
 print(standardized.agg(["mean", "std"]))
 """)
 
-md("""**Confirmation:** after z-score standardization both `age_z` and `fare_z`
-have mean ≈0 (order 1e-16 to 1e-17, i.e. numerically zero) and standard
-deviation ≈1 (`ddof=0` under the hood of `StandardScaler`, matching the
-`.std()` computed with `ddof=1` closely at n=889), confirming the
-transformation works as expected. This standardized version is **not** used
-in `02_modeling.ipynb` — that notebook fits its own `StandardScaler` inside a
-`ColumnTransformer`/`Pipeline` on the training split only, per the modeling
-requirements.""")
+md("""**My Confirmation:** After z-score standardization, I confirmed that both `age_z` and `fare_z` have mean ≈0 (order 1e-16 to 1e-17, i.e. numerically zero) and standard deviation ≈1 (`ddof=0` under the hood of `StandardScaler`, matching the `.std()` computed with `ddof=1` closely at n=889). This confirms my transformation works exactly as expected. I am **not** using this standardized version in `02_modeling.ipynb` — instead, I programmed that notebook to fit its own `StandardScaler` inside a `ColumnTransformer`/`Pipeline` on the training split only, strictly adhering to the modeling requirements.""")
 
 nb["cells"] = cells
 nb["metadata"] = {

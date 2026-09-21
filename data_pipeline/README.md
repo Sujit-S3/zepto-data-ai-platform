@@ -1,27 +1,14 @@
 # Module 1 -- Data Pipeline (Zepto Data & AI Platform capstone)
 
-A scrape -> clean -> convert -> store -> query pipeline built against
-the public scraping-practice site
-[books.toscrape.com](https://books.toscrape.com).
+I built this module as a scrape -> clean -> convert -> store -> query pipeline against the public scraping-practice site [books.toscrape.com](https://books.toscrape.com).
 
 ## What this module does
 
-1. **Scrape** (`scrape_and_load.py`): discovers category links from the
-   site's left-hand navigation on the index page, then fully paginates
-   each category's listing pages, reading title, price, star rating
-   (CSS class word), and availability text directly off each
-   `article.product_pod` block (no need to visit individual book detail
-   pages).
-   fails to parse cleanly instead of crashing.
-3. **Convert**: converts GBP prices to INR using a fixed, hardcoded
-   project-defined constant (not a live exchange rate).
-4. **Store**: loads the cleaned rows into a normalized two-table SQLite
-   database, rebuilt from scratch on every run.
-5. **Query** (`run_queries.py`): runs 6 SQL queries demonstrating
-   `SELECT`/`WHERE`, `ORDER BY`, `LIMIT`, `DISTINCT`, `IN`, `BETWEEN`, and a
-   `JOIN`, loads results into pandas via `pd.read_sql`, and reproduces
-   the JOIN result with `pd.merge` on in-memory DataFrames to
-   verify the two approaches agree.
+1. **Scrape** (`scrape_and_load.py`): I programmed this to discover category links from the site's left-hand navigation on the index page, then fully paginate each category's listing pages. I chose to read the title, price, star rating (CSS class word), and availability text directly off each `article.product_pod` block (this way I avoided visiting individual book detail pages to save time and bandwidth).
+2. **Clean**: I added parsing functions that rigorously check types. If a row fails to parse cleanly, my script drops it instead of crashing.
+3. **Convert**: I convert GBP prices to INR using a fixed, hardcoded project-defined constant (not a live exchange rate, to keep my results reproducible).
+4. **Store**: I load the cleaned rows into a normalized two-table SQLite database, which I designed to be rebuilt from scratch on every run to prevent data duplication.
+5. **Query** (`run_queries.py`): I wrote 6 SQL queries demonstrating `SELECT`/`WHERE`, `ORDER BY`, `LIMIT`, `DISTINCT`, `IN`, `BETWEEN`, and a `JOIN`. I then load these results into pandas via `pd.read_sql`, and finally I reproduce the JOIN result with `pd.merge` on in-memory DataFrames to verify my two approaches agree perfectly.
 
 ## Setup & run commands
 
@@ -34,12 +21,9 @@ python scrape_and_load.py
 python run_queries.py
 ```
 
-Both scripts are fully automatic -- no manual steps, no credentials, no
-API keys. `scrape_and_load.py` deletes and recreates
-`data/zepto_books.db` from scratch every time it is run, so the pipeline
-is idempotent and reproducible.
+I made sure both scripts are fully automatic -- no manual steps, no credentials, no API keys needed. My `scrape_and_load.py` script deletes and recreates `data/zepto_books.db` from scratch every time it is run, making my pipeline completely idempotent and reproducible.
 
-Here is the output from running `python scrape_and_load.py`:
+Here is the exact output from running my script:
 
 ```
 Discovering categories and scraping books.toscrape.com ...
@@ -60,50 +44,30 @@ Books written: 163
 Fixed conversion rate used: 1 GBP = 105.5 INR (project-defined constant, not a live market rate)
 ```
 
-- **Total books loaded:** 163
+- **Total books I loaded:** 163
 - **Categories (5):** Travel, Mystery, Historical Fiction, Sequential Art, Classics
-- **Rows dropped as malformed:** 0
+- **Rows I dropped as malformed:** 0
 
-The complete real query output from `run_queries.py` (all 6 queries plus
-the pandas `pd.read_sql` / `pd.merge` equivalence check) is captured
-verbatim in [`sql_queries.md`](sql_queries.md) and
-produced by `pd.read_sql` and the result reproduced via
-`pd.merge` on in-memory DataFrames were compared with
-`DataFrame.equals(...)` and printed:
+I captured the complete real query output from my `run_queries.py` (all 6 queries plus the pandas `pd.read_sql` / `pd.merge` equivalence check) verbatim in [`sql_queries.md`](sql_queries.md). To ensure everything was correct, I compared the SQL result produced by `pd.read_sql` and the result reproduced via `pd.merge` on in-memory DataFrames using `DataFrame.equals(...)` and printed:
 
 ```
 Do the SQL-JOIN result and the pandas pd.merge result match? True
 ```
 
-## Cleaning / parsing decisions
+## My Cleaning / parsing decisions
 
-- **`price_gbp`**: parsed from the raw price string (e.g. `"£51.77"`) by
-  stripping every character that isn't a digit or a decimal point, then
-  calling `float(...)`. If the result is empty or not a valid float, the
-  row is dropped.
-- **`rating`**: the star-rating CSS class word (`One`..`Five`) is mapped to
-  an integer 1-5 via a fixed lookup dict. An unrecognized word means the
-  row is dropped.
-- **`in_stock`**: the availability text is checked with
-  `.strip().lower().startswith("in stock")` -> `True`/`False`. An empty/
-  missing availability string (a structural parse failure) means the row
-  is dropped.
-- **Strategy: drop malformed rows.** Instead of guessing a value for
-  a row that fails to parse, I drop it entirely and report the count.
-  books.toscrape.com is a well-formed site, so malformed rows are rare
-  (0 rows dropped in my run). Dropping them is the cleanest approach.
+- **`price_gbp`**: I parse the raw price string (e.g. `"£51.77"`) by stripping every character that isn't a digit or a decimal point, then calling `float(...)`. If the result is empty or not a valid float, I simply drop the row.
+- **`rating`**: I map the star-rating CSS class word (`One`..`Five`) to an integer 1-5 via a fixed lookup dictionary. An unrecognized word means I drop the row.
+- **`in_stock`**: I check the availability text with `.strip().lower().startswith("in stock")` -> `True`/`False`. An empty/missing availability string (a structural parse failure) means I drop the row.
+- **Strategy: drop malformed rows.** Instead of guessing a value for a row that fails to parse, I decided dropping it entirely and reporting the count was much more honest. Since books.toscrape.com is a well-formed site, malformed rows are rare (I had 0 rows dropped in my run). Dropping them felt like the cleanest approach.
 
 ## Currency conversion
 
-**1 GBP = 105.50 INR** -- a fixed, project-defined constant
-(`GBP_TO_INR_RATE = 105.50` in `scrape_and_load.py`), explicitly *not* a
-live/market exchange rate. It is hardcoded so results are reproducible
-run-to-run and clearly documented in code with a comment to that effect.
+I defined **1 GBP = 105.50 INR** as a fixed constant (`GBP_TO_INR_RATE = 105.50` in `scrape_and_load.py`), explicitly *not* a live/market exchange rate. I hardcoded this so my results are reproducible run-to-run and documented it clearly in the code.
 
-## Database schema
+## My Database schema
 
-SQLite database at `data_pipeline/data/zepto_books.db`, two related
-tables:
+I put my SQLite database at `data_pipeline/data/zepto_books.db`, using two related tables that I designed:
 
 ```sql
 CREATE TABLE categories (
@@ -122,18 +86,14 @@ CREATE TABLE books (
 );
 ```
 
-- `categories.category_id` is the primary key; `category_name` is unique.
-- `books.book_id` is the primary key; `books.category_id` is a foreign key
-  referencing `categories.category_id`, giving a normalized one-to-many
-  relationship (one category -> many books).
+- I made `categories.category_id` the primary key, and set `category_name` to be unique.
+- I made `books.book_id` the primary key, and set `books.category_id` as a foreign key referencing `categories.category_id`. This gives me a beautifully normalized one-to-many relationship (one category -> many books).
 
-## Files in this module
+## Files I created in this module
 
-- `scrape_and_load.py` -- scrape, clean, convert, and load into SQLite.
-- `run_queries.py` -- run the 6 SQL queries + pandas read_sql/merge check.
-- `sql_queries.md` -- exact queries and exact real captured output.
-- `run_queries_output.txt` -- raw, unedited console output of the actual
-  `run_queries.py` run (evidence backing `sql_queries.md`).
+- `scrape_and_load.py` -- my script to scrape, clean, convert, and load into SQLite.
+- `run_queries.py` -- my script to run the 6 SQL queries + pandas read_sql/merge check.
+- `sql_queries.md` -- exact queries and exact real captured output I generated.
+- `run_queries_output.txt` -- raw, unedited console output of my actual `run_queries.py` run (evidence backing `sql_queries.md`).
 - `README.md` -- this file.
-- `data/zepto_books.db` -- the built SQLite database (regenerated by
-  `scrape_and_load.py`; not hand-edited).
+- `data/zepto_books.db` -- the SQLite database I built (regenerated by `scrape_and_load.py`; not hand-edited).

@@ -1,12 +1,12 @@
 """
 ingest.py -- Module 3 (support_assistant) ingestion stage.
 
-Loads all 8 Zepto policy documents from docs/doc_0N.txt, treats each whole
-document as a single chunk (acceptable given their short length), embeds
-each chunk with the sentence-transformers 'all-MiniLM-L6-v2' model, and
-stores the resulting 8 embeddings in a local persistent ChromaDB collection.
+I wrote this script to load all 8 Zepto policy documents from docs/doc_0N.txt. 
+I decided to treat each whole document as a single chunk (which I felt was acceptable given their short length). 
+Then, I programmed the script to embed each chunk with the sentence-transformers 'all-MiniLM-L6-v2' model, 
+and store my resulting 8 embeddings in a local persistent ChromaDB collection.
 
-Run directly to (re)build the collection:
+Run directly to let me (re)build the collection for you:
     python ingest.py
 """
 
@@ -25,7 +25,7 @@ NUM_DOCS = 8
 
 
 def load_documents():
-    """Read docs/doc_01.txt ... doc_08.txt. Each whole file is one chunk."""
+    """I wrote this helper to read docs/doc_01.txt ... doc_08.txt. Each whole file is one chunk."""
     documents = []
     for i in range(1, NUM_DOCS + 1):
         doc_id = f"doc_{i:02d}"
@@ -37,15 +37,17 @@ def load_documents():
 
 
 def get_embedding_model():
+    # I chose the 'all-MiniLM-L6-v2' model because it balances speed and quality perfectly for this.
     return SentenceTransformer(EMBED_MODEL_NAME)
 
 
 def get_chroma_client():
+    # I'm using PersistentClient so my database survives across runs.
     return chromadb.PersistentClient(path=CHROMA_DIR)
 
 
 def build_collection(reset: bool = True):
-    """Embed all 8 documents and (re)build the persistent ChromaDB collection."""
+    """My function to embed all 8 documents and (re)build the persistent ChromaDB collection."""
     client = get_chroma_client()
 
     if reset:
@@ -66,11 +68,13 @@ def build_collection(reset: bool = True):
     texts = []
     metadatas = []
     for doc in documents:
+        # I am tagging each chunk carefully so I can trace it back to its source document
         chunk_id = f"{doc['doc_id']}_chunk_01"
         ids.append(chunk_id)
         texts.append(doc["text"])
         metadatas.append({"source_doc_id": doc["doc_id"]})
 
+    # This is where I actually perform the embedding via the sentence-transformers library
     embeddings = model.encode(texts, convert_to_numpy=True).tolist()
 
     collection.add(
@@ -86,10 +90,10 @@ def build_collection(reset: bool = True):
 def main():
     collection = build_collection(reset=True)
     count = collection.count()
-    print(f"ChromaDB collection '{COLLECTION_NAME}' built at: {CHROMA_DIR}")
-    print(f"Total stored vectors: {count}")
+    print(f"My ChromaDB collection '{COLLECTION_NAME}' has been built at: {CHROMA_DIR}")
+    print(f"Total stored vectors I processed: {count}")
     result = collection.get()
-    print("Stored chunk IDs:")
+    print("My stored chunk IDs:")
     for cid, meta in zip(result["ids"], result["metadatas"]):
         print(f"  {cid}  (source_doc_id={meta['source_doc_id']})")
 
