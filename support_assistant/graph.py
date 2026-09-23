@@ -207,7 +207,7 @@ def retrieve_and_answer(state: SupportAssistantState) -> SupportAssistantState:
         # MOCK_LLM unset or "1": no LLM call. I build a deterministic answer
         # from the single most similar retrieved chunk.
         top_chunk = retrieved_chunks[0]
-        answer = "Based on the retrieved context I found: " + top_chunk["text"][:200]
+        answer = "Based on the retrieved context: " + top_chunk["text"][:200]
         sources = [chunk["id"] for chunk in retrieved_chunks]
         confidence = 1.0
         validated = AnswerResponse(answer=answer, sources=sources, confidence=confidence)
